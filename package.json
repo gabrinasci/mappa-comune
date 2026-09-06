@@ -1,0 +1,13 @@
+{
+  "name": "mappa-servizi-comunali",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Build Tailwind CSS per la produzione (Node serve solo in locale/dev, non sull'hosting).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./resources/tailwind-input.css -o ./public/assets/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./resources/tailwind-input.css -o ./public/assets/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
