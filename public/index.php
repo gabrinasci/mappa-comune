@@ -108,10 +108,6 @@
         </div>
       </div>
     </div>
-
-    <a href="/lista.php" aria-label="Vedi elenco completo in formato tabellare" class="shrink-0 text-lg sm:text-sm sm:text-blue-800 sm:underline">
-      📋<span class="hidden sm:inline"> Elenco</span>
-    </a>
   </div>
 </header>
 

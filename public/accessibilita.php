@@ -25,9 +25,9 @@
      effettuata secondo il modello WCAG 2.1 livello AA].</p>
 
   <h2 class="text-lg font-semibold mt-6">Contenuti non accessibili</h2>
-  <p>[Elencare eventuali limiti noti, ad esempio: la mappa interattiva richiede l'uso del mouse per
-     alcune interazioni fini; è comunque disponibile una <a class="text-blue-800 underline" href="/lista.php">vista elenco</a>
-     con le stesse informazioni, utilizzabile da tastiera e con screen reader.]</p>
+  <p>[Elencare eventuali limiti noti. Nota: la vista a elenco/tabella alternativa alla mappa è
+     temporaneamente disattivata dal frontend pubblico; finché non è ripristinata, la mappa interattiva
+     richiede l'uso del mouse per alcune interazioni fini senza un'alternativa non cartografica.]</p>
 
   <h2 class="text-lg font-semibold mt-6">Come è stata redatta questa dichiarazione</h2>
   <p>Data di redazione: [gg/mm/aaaa]. Metodo di valutazione: [autovalutazione / valutazione da parte
