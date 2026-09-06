@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <button type="submit" class="w-full bg-blue-800 text-white rounded py-2 text-sm font-medium">Accedi</button>
   </form>
+  <a href="/admin/password_dimenticata.php" class="block mt-4 text-sm text-blue-800 underline text-center">Password dimenticata?</a>
 </div>
 </body>
 </html>

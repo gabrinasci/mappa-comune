@@ -24,8 +24,27 @@ CREATE TABLE utenti (
   password_hash VARCHAR(255) NOT NULL,
   ruolo ENUM('admin_comune','superadmin') NOT NULL DEFAULT 'admin_comune',
   attivo TINYINT(1) NOT NULL DEFAULT 1,
+  reset_token_hash VARCHAR(64) NULL,
+  reset_token_scadenza DATETIME NULL,
+  ultimo_accesso DATETIME NULL,
   creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (comune_id) REFERENCES comuni(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE log_accessi (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  utente_id INT NULL,
+  email_tentativo VARCHAR(190) NOT NULL,
+  esito ENUM('successo', 'fallito') NOT NULL,
+  ip VARCHAR(45) NULL,
+  user_agent VARCHAR(255) NULL,
+  creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (utente_id) REFERENCES utenti(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE impostazioni (
+  chiave VARCHAR(100) PRIMARY KEY,
+  valore TEXT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE punti_servizio (
