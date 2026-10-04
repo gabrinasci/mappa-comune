@@ -78,7 +78,15 @@ function mappaServizi() {
                 attribution: '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox</a> <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a> <a href="https://www.mapbox.com/map-feedback/">Migliora la mappa</a>',
                 maxZoom: 20,
             }).addTo(this.mappa);
-            this.layerMarker = L.layerGroup().addTo(this.mappa);
+            this.layerMarker = L.markerClusterGroup({
+                maxClusterRadius: 45,
+                showCoverageOnHover: false,
+                iconCreateFunction: (cluster) => L.divIcon({
+                    html: `<span>${cluster.getChildCount()}</span>`,
+                    className: 'cluster-servizi',
+                    iconSize: [36, 36],
+                }),
+            }).addTo(this.mappa);
         },
 
         async caricaConfiniSeDisponibili() {
@@ -214,7 +222,7 @@ function mappaServizi() {
                     alt: `${p.nome} (${p.categoria_nome})`,
                 });
                 marker.on('click', () => this.seleziona(p));
-                marker.addTo(this.layerMarker);
+                this.layerMarker.addLayer(marker);
             }
         },
 

@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mappa Servizi Comunali</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
@@ -169,6 +171,17 @@
   </aside>
 </main>
 
+<footer class="border-t bg-white text-xs text-gray-600">
+  <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
+    <span>Punti in comune · Farra di Soligo, Pieve di Soligo, Sernaglia della Battaglia</span>
+    <nav aria-label="Informazioni legali" class="flex gap-4">
+      <a href="/privacy.php" class="underline hover:text-primary">Privacy policy</a>
+      <a href="/cookie.php" class="underline hover:text-primary">Cookie policy</a>
+      <a href="/accessibilita.php" class="underline hover:text-primary">Accessibilità</a>
+    </nav>
+  </div>
+</footer>
+
 <div x-cloak class="fixed inset-0 z-[1200] pointer-events-none" @keydown.escape.window="filtriAperti = false">
   <aside x-show="filtriAperti" id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"
          x-transition:enter="transition ease-out duration-300"
@@ -227,6 +240,7 @@
   </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="/assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </body>
