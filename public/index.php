@@ -23,10 +23,6 @@
   <div class="flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3">
     <a href="/index.php" class="flex items-center gap-3 shrink-0" aria-label="Punti in comune — Mappa servizi">
       <img src="/assets/img/punti-in-comune_logo.svg" alt="Punti in comune" class="h-10 sm:h-12 w-auto">
-      <span class="hidden sm:block leading-tight">
-        <span class="block text-lg font-semibold text-navy">Mappa dei servizi</span>
-        <span class="block text-xs text-gray-600">Farra di Soligo · Pieve di Soligo · Sernaglia della Battaglia</span>
-      </span>
     </a>
 
     <!-- Ricerca con autocompletamento (combobox accessibile) -->
