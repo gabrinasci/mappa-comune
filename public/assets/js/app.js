@@ -23,9 +23,16 @@ function normalizzaTesto(testo) {
         .replace(new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g'), '');
 }
 
+function iconaContrasto(hex) {
+    const n = parseInt(hex.replace('#', ''), 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const luminanza = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return luminanza > 0.6 ? '#00194B' : '#FFFFFF';
+}
+
 function svgMarker(colore, icona) {
     const path = ICONE_CATEGORIA[icona] || ICONA_DEFAULT;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="#fff" style="background:${colore};border-radius:50%;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.4)">${path}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="${iconaContrasto(colore)}" style="background:${colore};border-radius:50%;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.4)">${path}</svg>`;
 }
 
 function mappaServizi() {
@@ -237,7 +244,11 @@ function mappaServizi() {
 
         svgIconaCategoria(punto) {
             const path = ICONE_CATEGORIA[punto.categoria_icona] || ICONA_DEFAULT;
-            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true" focusable="false">${path}</svg>`;
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="${iconaContrasto(punto.colore_hex)}" aria-hidden="true" focusable="false">${path}</svg>`;
+        },
+
+        coloreTesto(hex) {
+            return iconaContrasto(hex);
         },
 
         linkIndicazioni(punto) {

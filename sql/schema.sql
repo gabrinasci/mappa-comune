@@ -102,8 +102,8 @@ INSERT INTO comuni (nome, slug) VALUES
   ('Sernaglia della Battaglia', 'sernaglia-della-battaglia');
 
 INSERT INTO categorie (nome, colore_hex, icona, ordine) VALUES
-  ('Anagrafe', '#2563eb', 'anagrafe', 1),
-  ('Tributi', '#b45309', 'tributi', 2),
-  ('Sociale', '#059669', 'sociale', 3),
-  ('Istruzione', '#7c3aed', 'istruzione', 4),
-  ('Biblioteca', '#dc2626', 'biblioteca', 5);
+  ('Anagrafe', '#009BDF', 'anagrafe', 1),
+  ('Tributi', '#FFCB03', 'tributi', 2),
+  ('Sociale', '#0BB14B', 'sociale', 3),
+  ('Istruzione', '#F06798', 'istruzione', 4),
+  ('Biblioteca', '#F05202', 'biblioteca', 5);

@@ -110,7 +110,7 @@
                 <span class="shrink-0 mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" :style="`background:${p.colore_hex}`" x-html="svgIconaCategoria(p)"></span>
                 <span class="min-w-0">
                   <span class="block text-sm font-semibold text-navy" x-text="p.nome"></span>
-                  <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full" :style="`background:${p.colore_hex}1a;color:${p.colore_hex}`" x-text="p.categoria_nome"></span>
+                  <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full" :style="`background:${p.colore_hex};color:${coloreTesto(p.colore_hex)}`" x-text="p.categoria_nome"></span>
                   <span class="block mt-1 text-xs text-gray-600" x-text="p.comune_nome"></span>
                 </span>
               </button>
