@@ -144,7 +144,19 @@
     </div>
 
     <template x-if="!selezionato">
-      <p class="p-6 text-sm text-gray-500">Clicca un pin sulla mappa, oppure cerca un servizio, per vedere i dettagli.</p>
+      <div class="p-4">
+        <p class="text-sm text-gray-600 mb-3" x-text="puntiFiltrati.length + ' servizi'"></p>
+        <ul class="divide-y border-t">
+          <template x-for="p in puntiFiltrati" :key="p.id">
+            <li>
+              <button type="button" @click="seleziona(p)" class="w-full text-left py-2 hover:bg-gray-100">
+                <span class="block text-sm font-semibold text-navy" x-text="p.nome"></span>
+                <span class="block text-xs text-gray-600" x-text="p.categoria_nome + ' · ' + p.comune_nome"></span>
+              </button>
+            </li>
+          </template>
+        </ul>
+      </div>
     </template>
     <template x-if="selezionato">
       <div class="p-5 pt-0 sm:pt-5">
