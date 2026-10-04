@@ -26,7 +26,7 @@
     </a>
 
     <!-- Ricerca con autocompletamento (combobox accessibile) -->
-    <div class="flex-1 min-w-0 flex justify-center">
+    <div class="flex-1 min-w-0 flex justify-center items-center">
     <div class="relative w-full sm:w-1/2 min-w-0" @click.outside="chiudiSuggerimenti()">
       <label class="sr-only" for="ricerca">Cerca ufficio o servizio per nome, indirizzo o categoria</label>
       <input id="ricerca" type="text" x-model="ricerca"
@@ -59,7 +59,9 @@
         Nessun risultato per "<span x-text="ricerca"></span>"
       </p>
     </div>
-    <button type="button" @click="geolocalizza()" aria-label="Mostra la mia posizione sulla mappa" class="shrink-0 border rounded-full px-3 py-2 text-sm font-medium bg-white hover:bg-gray-100">Dove sono</button>
+    <button type="button" @click="geolocalizza()" aria-label="Mostra la mia posizione sulla mappa" title="Mostra la mia posizione" class="shrink-0 ml-3 w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-white text-navy hover:bg-gray-100">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+    </button>
     </div>
 
     <!-- Pulsante filtri (comune + categoria), sostituisce le chip -->
