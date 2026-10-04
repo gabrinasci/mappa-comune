@@ -169,8 +169,7 @@
   </aside>
 </main>
 
-<div x-cloak class="fixed inset-0 z-50" :class="filtriAperti ? 'pointer-events-auto' : 'pointer-events-none'" @keydown.escape.window="filtriAperti = false">
-  <div x-show="filtriAperti" x-transition.opacity.duration.300ms @click="filtriAperti = false" class="absolute inset-0 bg-black/30"></div>
+<div x-cloak class="fixed inset-0 z-[1200] pointer-events-none" @keydown.escape.window="filtriAperti = false">
   <aside x-show="filtriAperti" id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="translate-y-full sm:translate-y-0 sm:translate-x-full"
@@ -178,7 +177,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="translate-y-0 sm:translate-x-0"
          x-transition:leave-end="translate-y-full sm:translate-y-0 sm:translate-x-full"
-         class="absolute inset-y-0 right-0 w-full bg-white shadow-lg flex flex-col sm:w-96">
+         class="pointer-events-auto absolute inset-y-0 right-0 w-full bg-white shadow-lg flex flex-col sm:w-96">
       <div class="flex items-center justify-between px-5 py-4 border-b">
         <h2 id="titolo-filtri" class="text-lg font-semibold text-navy">Filtri</h2>
         <button type="button" @click="filtriAperti = false" class="text-sm text-primary hover:underline">Chiudi</button>
