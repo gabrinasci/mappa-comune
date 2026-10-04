@@ -18,3 +18,6 @@
   background: #ffffff; color: #00194B; font: 600 12px "Titillium Web", Arial, sans-serif;
   border: 2px solid rgba(0, 25, 75, 0.35); box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
 }
+
+body { font-family: 'Titillium Web', Arial, sans-serif; }
+h1, h2, h3, h4 { font-family: Lora, Georgia, serif; }
