@@ -19,7 +19,7 @@
 
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
-<header class="bg-white border-b-4 border-navy shadow-sm z-20 relative">
+<header class="bg-white shadow-sm z-20 relative">
   <div class="flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3">
     <a href="/index.php" class="flex items-center gap-3 shrink-0" aria-label="Punti in comune — Mappa servizi">
       <img src="/assets/img/punti-in-comune_logo.svg" alt="Punti in comune" class="h-10 sm:h-12 w-auto">
