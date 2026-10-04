@@ -178,8 +178,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="translate-y-0 sm:translate-x-0"
          x-transition:leave-end="translate-y-full sm:translate-y-0 sm:translate-x-full"
-         class="absolute bottom-0 inset-x-0 max-h-[80vh] bg-white rounded-t-lg shadow-lg flex flex-col
-                sm:bottom-auto sm:inset-y-0 sm:right-0 sm:left-auto sm:w-96 sm:max-h-none sm:rounded-none">
+         class="absolute inset-y-0 right-0 w-full bg-white shadow-lg flex flex-col sm:w-96">
       <div class="flex items-center justify-between px-5 py-4 border-b">
         <h2 id="titolo-filtri" class="text-lg font-semibold text-navy">Filtri</h2>
         <button type="button" @click="filtriAperti = false" class="text-sm text-primary hover:underline">Chiudi</button>
