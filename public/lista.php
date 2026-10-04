@@ -7,13 +7,13 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body class="bg-gray-50 text-gray-900" x-data="mappaServizi()" x-init="init(null)">
+<body class="bg-white text-gray-900" x-data="mappaServizi()" x-init="init(null)">
 
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
 <header class="bg-white border-b shadow-sm sticky top-0 z-20">
   <div class="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-3 max-w-5xl mx-auto">
-    <h1 class="text-base sm:text-lg font-semibold text-blue-900 shrink-0">📍 <span class="hidden xs:inline">Elenco Servizi</span></h1>
+    <h1 class="text-base sm:text-lg font-semibold text-navy shrink-0">Elenco servizi</h1>
 
     <label class="sr-only" for="ricerca">Cerca ufficio o servizio</label>
     <input id="ricerca" type="text" x-model="ricerca" @input="aggiornaMarkers()"
@@ -23,9 +23,9 @@
     <div class="relative shrink-0" @click.outside="filtriAperti = false">
       <button type="button" @click="filtriAperti = !filtriAperti" :aria-expanded="filtriAperti" aria-haspopup="true"
               class="relative flex items-center gap-1.5 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white">
-        <span aria-hidden="true">▤</span> <span class="hidden sm:inline">Filtri</span>
+        <span class="hidden sm:inline">Filtri</span>
         <span x-show="numeroFiltriAttivi" x-text="numeroFiltriAttivi"
-              class="absolute -top-1.5 -right-1.5 bg-blue-800 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
+              class="absolute -top-1.5 -right-1.5 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
       </button>
 
       <div x-show="filtriAperti" @click="filtriAperti = false" class="fixed inset-0 bg-black/30 z-30 sm:hidden"></div>
@@ -35,7 +35,7 @@
                   sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 sm:rounded-lg sm:max-h-[70vh]">
         <div class="flex items-center justify-between mb-3 sm:hidden">
           <span class="font-semibold">Filtri</span>
-          <button type="button" @click="filtriAperti = false" aria-label="Chiudi filtri" class="text-gray-400">✕</button>
+          <button type="button" @click="filtriAperti = false" aria-label="Chiudi filtri" class="text-gray-400">×</button>
         </div>
         <fieldset class="mb-4">
           <legend class="text-xs font-semibold uppercase text-gray-500 mb-2">Comune</legend>
@@ -62,13 +62,13 @@
         </fieldset>
         <div class="flex gap-2">
           <button type="button" @click="azzeraFiltri()" class="flex-1 border rounded-lg py-2 text-sm font-medium">Azzera</button>
-          <button type="button" @click="filtriAperti = false" class="flex-1 bg-blue-800 text-white rounded-lg py-2 text-sm font-medium">Applica</button>
+          <button type="button" @click="filtriAperti = false" class="flex-1 bg-primary text-white rounded-lg py-2 text-sm font-medium">Applica</button>
         </div>
       </div>
     </div>
 
     <a href="/index.php" aria-label="Torna alla mappa" class="shrink-0 text-lg sm:text-sm sm:text-blue-800 sm:underline">
-      🗺️<span class="hidden sm:inline"> Mappa</span>
+      Mappa
     </a>
   </div>
 </header>

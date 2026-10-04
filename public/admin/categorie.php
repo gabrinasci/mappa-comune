@@ -55,8 +55,12 @@ $categorie = $pdo->query('SELECT * FROM categorie ORDER BY ordine')->fetchAll();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Categorie — Mappa Servizi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="bg-white text-gray-900 min-h-screen">
 <?php require __DIR__ . '/_nav.php'; ?>
 <main class="max-w-3xl mx-auto px-4 py-8">
   <h1 class="text-xl font-semibold mb-4">Categorie (aree tematiche)</h1>
@@ -117,7 +121,7 @@ $categorie = $pdo->query('SELECT * FROM categorie ORDER BY ordine')->fetchAll();
       <label class="block text-sm font-medium mb-1">Ordine di visualizzazione</label>
       <input name="ordine" type="number" value="0" class="w-full border rounded px-3 py-2 text-sm">
     </div>
-    <button type="submit" class="bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">Aggiungi categoria</button>
+    <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">Aggiungi categoria</button>
   </form>
 </main>
 </body>

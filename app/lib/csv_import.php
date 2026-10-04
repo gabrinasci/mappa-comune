@@ -3,10 +3,14 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/config.php';
 
 // Colonne attese nel CSV, in quest'ordine (intestazione in prima riga).
+// L'orario può essere indicato in due modi alternativi: se "orario_testo" è valorizzato
+// viene usato quel testo libero e le colonne orario_lun...orario_dom vengono ignorate;
+// altrimenti si prova a leggere l'orario strutturato giorno per giorno da queste ultime.
 const CSV_COLONNE = [
-    'comune', 'categoria', 'nome', 'indirizzo', 'lat', 'lng',
-    'telefono', 'email', 'sito_web', 'descrizione',
+    'comune', 'categoria', 'nome', 'indirizzo', 'telefono', 'sito_web', 'email', 'descrizione',
+    'sovracomunale', 'orario_testo',
     'orario_lun', 'orario_mar', 'orario_mer', 'orario_gio', 'orario_ven', 'orario_sab', 'orario_dom',
+    'lat', 'lng',
 ];
 
 const GIORNI_SETTIMANA = [
@@ -110,15 +114,24 @@ function anteprimaImportCsv(string $percorsoFile, array $utente): array
             }
         }
 
+        $orarioTesto = trim($dati['orario_testo'] ?? '');
         $orari = [];
-        foreach (GIORNI_SETTIMANA as $colonna => $giorno) {
-            $risultato = normalizzaOrario($dati[$colonna] ?? '');
-            if ($risultato === null) {
-                $errori[] = "Formato orario non valido nella colonna \"$colonna\" (usa HH:MM-HH:MM oppure \"chiuso\").";
-                continue;
+        if ($orarioTesto === '') {
+            // Nessun testo libero: si prova a leggere l'orario strutturato giorno per giorno.
+            foreach (GIORNI_SETTIMANA as $colonna => $giorno) {
+                if (!array_key_exists($colonna, $dati)) {
+                    continue; // colonna non presente nel CSV: nessun orario strutturato indicato
+                }
+                $risultato = normalizzaOrario($dati[$colonna]);
+                if ($risultato === null) {
+                    $errori[] = "Formato orario non valido nella colonna \"$colonna\" (usa HH:MM-HH:MM oppure \"chiuso\").";
+                    continue;
+                }
+                $orari[] = ['giorno_settimana' => $giorno] + $risultato;
             }
-            $orari[] = ['giorno_settimana' => $giorno] + $risultato;
         }
+
+        $sovracomunale = parseSiNo($dati['sovracomunale'] ?? '');
 
         $righe[] = [
             'numero_riga' => $numeroRiga,
@@ -128,7 +141,9 @@ function anteprimaImportCsv(string $percorsoFile, array $utente): array
             'lat' => $lat,
             'lng' => $lng,
             'geocodificato' => $geocodificato,
+            'orario_testo' => $orarioTesto !== '' ? $orarioTesto : null,
             'orari' => $orari,
+            'sovracomunale' => $sovracomunale,
             'errori' => $errori,
         ];
     }
@@ -148,8 +163,8 @@ function confermaImportCsv(array $righe, array $utente): array
     $pdo->beginTransaction();
     try {
         $inserisciPunto = $pdo->prepare(
-            'INSERT INTO punti_servizio (comune_id, categoria_id, nome, indirizzo, lat, lng, descrizione, telefono, email, sito_web, creato_da)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO punti_servizio (comune_id, categoria_id, nome, indirizzo, lat, lng, orario_testo, sovracomunale, descrizione, telefono, email, sito_web, creato_da)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $inserisciOrario = $pdo->prepare(
             'INSERT INTO orari_apertura (punto_id, giorno_settimana, apertura, chiusura, chiuso) VALUES (?, ?, ?, ?, ?)'
@@ -164,7 +179,8 @@ function confermaImportCsv(array $righe, array $utente): array
             $dati = $riga['dati'];
             $inserisciPunto->execute([
                 $riga['comune_id'], $riga['categoria_id'], $dati['nome'], $dati['indirizzo'],
-                $riga['lat'], $riga['lng'], $dati['descrizione'] ?: null, $dati['telefono'] ?: null,
+                $riga['lat'], $riga['lng'], $riga['orario_testo'], $riga['sovracomunale'] ? 1 : 0,
+                $dati['descrizione'] ?: null, $dati['telefono'] ?: null,
                 $dati['email'] ?: null, $dati['sito_web'] ?: null, $utente['id'],
             ]);
             $puntoId = (int) $pdo->lastInsertId();
@@ -180,6 +196,13 @@ function confermaImportCsv(array $righe, array $utente): array
     }
 
     return ['importate' => $importate, 'errori' => $errori, 'dettagli_errore' => $dettagliErrore];
+}
+
+function parseSiNo(string $valore): bool
+{
+    $valore = strtolower(trim($valore));
+    $valore = iconv('UTF-8', 'ASCII//TRANSLIT', $valore) ?: $valore;
+    return in_array($valore, ['si', 's', 'x', '1', 'true', 'yes', 'y'], true);
 }
 
 function normalizzaOrario(string $testo): ?array

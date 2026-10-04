@@ -3,11 +3,26 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/helpers.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => !empty($_SERVER['HTTPS']),
+    ]);
     session_start();
+}
+
+function tentativiFalliti(string $email): int
+{
+    $stmt = db()->prepare("SELECT COUNT(*) FROM log_accessi WHERE email_tentativo = ? AND esito = 'fallito' AND creato_il > (NOW() - INTERVAL 15 MINUTE)");
+    $stmt->execute([$email]);
+    return (int) $stmt->fetchColumn();
 }
 
 function tentaLogin(string $email, string $password): bool
 {
+    if (tentativiFalliti($email) >= 5) {
+        return false;
+    }
     $stmt = db()->prepare('SELECT * FROM utenti WHERE email = ? AND attivo = 1');
     $stmt->execute([$email]);
     $utente = $stmt->fetch();

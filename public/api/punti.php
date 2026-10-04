@@ -10,6 +10,7 @@ $categorie = $pdo->query('SELECT id, nome, colore_hex, icona FROM categorie ORDE
 
 $punti = $pdo->query(
     'SELECT p.id, p.comune_id, p.categoria_id, p.nome, p.indirizzo, p.lat, p.lng,
+            p.orario_testo, p.sovracomunale,
             p.descrizione, p.telefono, p.email, p.sito_web, p.immagine_url,
             c.nome AS categoria_nome, c.colore_hex, c.icona AS categoria_icona,
             co.nome AS comune_nome
@@ -32,6 +33,7 @@ foreach ($pdo->query('SELECT punto_id, giorno_settimana, apertura, chiusura, chi
 foreach ($punti as &$punto) {
     $punto['lat'] = (float) $punto['lat'];
     $punto['lng'] = (float) $punto['lng'];
+    $punto['sovracomunale'] = (bool) $punto['sovracomunale'];
     $punto['orari'] = $orariPerPunto[$punto['id']] ?? [];
 }
 unset($punto);

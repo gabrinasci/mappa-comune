@@ -7,15 +7,27 @@
 <title>Mappa Servizi Comunali</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/img/punti-in-comune_logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body class="h-screen flex flex-col bg-gray-50 text-gray-900" x-data="mappaServizi()" x-init="init($refs.mappa)">
+<body class="h-screen flex flex-col bg-white text-gray-900" x-data="mappaServizi()" x-init="init($refs.mappa)">
 
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
-<header class="bg-white border-b shadow-sm z-20 relative">
-  <div class="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-3">
-    <h1 class="text-base sm:text-lg font-semibold text-blue-900 shrink-0">📍 <span class="hidden xs:inline">Mappa Servizi</span></h1>
+<header class="bg-white border-b-4 border-navy shadow-sm z-20 relative">
+  <div class="flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3">
+    <a href="/index.php" class="flex items-center gap-3 shrink-0" aria-label="Punti in comune — Mappa servizi">
+      <img src="/assets/img/punti-in-comune_logo.svg" alt="Punti in comune" class="h-10 sm:h-12 w-auto">
+      <span class="hidden sm:block leading-tight">
+        <span class="block text-lg font-semibold text-navy">Mappa dei servizi</span>
+        <span class="block text-xs text-gray-600">Farra di Soligo · Pieve di Soligo · Sernaglia della Battaglia</span>
+      </span>
+    </a>
 
     <!-- Ricerca con autocompletamento (combobox accessibile) -->
     <div class="relative flex-1 min-w-0" @click.outside="chiudiSuggerimenti()">
@@ -37,7 +49,7 @@
         <template x-for="(s, i) in suggerimenti" :key="s.id">
           <li :id="'suggerimento-' + i" role="option" :aria-selected="i === indiceEvidenziato">
             <button type="button" @click="selezionaSuggerimento(s)" @mouseenter="indiceEvidenziato = i"
-                    :class="i === indiceEvidenziato ? 'bg-blue-50' : ''"
+                    :class="i === indiceEvidenziato ? 'bg-gray-100' : ''"
                     class="w-full text-left px-3 py-2">
               <span class="block text-sm font-medium" x-text="s.nome"></span>
               <span class="block text-xs text-gray-500" x-text="s.categoria_nome + ' · ' + s.comune_nome"></span>
@@ -55,9 +67,9 @@
     <div class="relative shrink-0" @click.outside="filtriAperti = false">
       <button type="button" @click="filtriAperti = !filtriAperti" :aria-expanded="filtriAperti" aria-haspopup="true"
               class="relative flex items-center gap-1.5 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white">
-        <span aria-hidden="true">▤</span> <span class="hidden sm:inline">Filtri</span>
+        <span class="hidden sm:inline">Filtri</span>
         <span x-show="numeroFiltriAttivi" x-text="numeroFiltriAttivi"
-              class="absolute -top-1.5 -right-1.5 bg-blue-800 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
+              class="absolute -top-1.5 -right-1.5 bg-primary text-white hover:bg-primary-dark text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
       </button>
 
       <div x-show="filtriAperti" @click="filtriAperti = false" class="fixed inset-0 bg-black/30 z-30 sm:hidden"></div>
@@ -67,7 +79,7 @@
                   sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 sm:rounded-lg sm:max-h-[70vh]">
         <div class="flex items-center justify-between mb-3 sm:hidden">
           <span class="font-semibold">Filtri</span>
-          <button type="button" @click="filtriAperti = false" aria-label="Chiudi filtri" class="text-gray-400">✕</button>
+          <button type="button" @click="filtriAperti = false" aria-label="Chiudi filtri" class="text-gray-400">×</button>
         </div>
 
         <fieldset class="mb-4">
@@ -104,7 +116,7 @@
 
         <div class="flex gap-2">
           <button type="button" @click="azzeraFiltri()" class="flex-1 border rounded-lg py-2 text-sm font-medium">Azzera</button>
-          <button type="button" @click="filtriAperti = false" class="flex-1 bg-blue-800 text-white rounded-lg py-2 text-sm font-medium">Applica</button>
+          <button type="button" @click="filtriAperti = false" class="flex-1 bg-primary text-white hover:bg-primary-dark rounded-lg py-2 text-sm font-medium">Applica</button>
         </div>
       </div>
     </div>
@@ -139,15 +151,24 @@
     <template x-if="selezionato">
       <div class="p-5 pt-0 sm:pt-5">
         <div class="flex items-start justify-between gap-2">
-          <span class="inline-block text-xs font-semibold px-2 py-1 rounded"
-                :style="`background:${selezionato.colore_hex}20; color:${selezionato.colore_hex}`"
-                x-text="selezionato.categoria_nome"></span>
-          <button type="button" @click="chiudiDettaglio()" aria-label="Chiudi dettagli" class="text-gray-400 hover:text-gray-700">✕</button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-block text-xs font-semibold px-2 py-1 rounded"
+                  :style="`background:${selezionato.colore_hex}20; color:${selezionato.colore_hex}`"
+                  x-text="selezionato.categoria_nome"></span>
+            <span x-show="selezionato.sovracomunale" class="inline-block text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800">Sovracomunale</span>
+          </div>
+          <button type="button" @click="chiudiDettaglio()" aria-label="Chiudi dettagli" class="text-gray-400 hover:text-gray-700">×</button>
         </div>
         <h2 class="mt-2 text-xl font-semibold" x-text="selezionato.nome"></h2>
-        <p class="text-sm text-gray-600 mt-1">📍 <span x-text="selezionato.indirizzo + ', ' + selezionato.comune_nome"></span></p>
+        <p class="text-sm text-gray-600 mt-1"><span x-text="selezionato.indirizzo + ', ' + selezionato.comune_nome"></span></p>
 
-        <template x-if="selezionato.orari.length">
+        <template x-if="selezionato.orario_testo">
+          <div class="mt-4">
+            <h3 class="text-xs font-semibold uppercase text-gray-500">Orari di apertura</h3>
+            <p class="mt-1 text-sm whitespace-pre-line" x-text="selezionato.orario_testo"></p>
+          </div>
+        </template>
+        <template x-if="!selezionato.orario_testo && selezionato.orari.length">
           <div class="mt-4">
             <h3 class="text-xs font-semibold uppercase text-gray-500">Orari di apertura</h3>
             <dl class="mt-1 text-sm">
@@ -164,15 +185,15 @@
         <p class="mt-4 text-sm whitespace-pre-line" x-text="selezionato.descrizione"></p>
 
         <div class="mt-4 text-sm space-y-1">
-          <p x-show="selezionato.telefono">☎️ <span x-text="selezionato.telefono"></span></p>
-          <p x-show="selezionato.email">✉️ <a class="text-blue-800 underline" :href="'mailto:' + selezionato.email" x-text="selezionato.email"></a></p>
+          <p x-show="selezionato.telefono">Tel. <span x-text="selezionato.telefono"></span></p>
+          <p x-show="selezionato.email">Email: <a class="text-blue-800 underline" :href="'mailto:' + selezionato.email" x-text="selezionato.email"></a></p>
         </div>
 
         <div class="mt-5 space-y-2 pb-4">
           <a :href="linkIndicazioni(selezionato)" target="_blank" rel="noopener"
-             class="block text-center bg-blue-800 text-white rounded-md py-2 text-sm font-medium">↗ Portami qui</a>
+             class="block text-center bg-primary text-white hover:bg-primary-dark rounded-md py-2 text-sm font-medium">Indicazioni stradali</a>
           <a x-show="selezionato.sito_web" :href="selezionato.sito_web" target="_blank" rel="noopener"
-             class="block text-center border rounded-md py-2 text-sm font-medium text-gray-700">ⓘ Scopri di più</a>
+             class="block text-center border rounded-md py-2 text-sm font-medium text-gray-700">Sito del servizio</a>
         </div>
       </div>
     </template>

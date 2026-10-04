@@ -54,8 +54,12 @@ if (!$risultatoFinale && !empty($_SESSION['import_preview'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Importa CSV — Mappa Servizi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="bg-white text-gray-900 min-h-screen">
 <?php require __DIR__ . '/_nav.php'; ?>
 <main class="max-w-5xl mx-auto px-4 py-8">
   <h1 class="text-xl font-semibold mb-4">Importa punti servizio da CSV</h1>
@@ -115,7 +119,7 @@ if (!$risultatoFinale && !empty($_SESSION['import_preview'])) {
           </tbody>
         </table>
       </div>
-      <button type="submit" class="mt-4 bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">Conferma import</button>
+      <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm font-medium">Conferma import</button>
       <a href="/admin/import.php" class="ml-2 text-sm text-gray-600 underline">Annulla</a>
     </form>
 
@@ -134,7 +138,7 @@ if (!$risultatoFinale && !empty($_SESSION['import_preview'])) {
         <?= csrfCampo() ?>
         <input type="hidden" name="azione" value="carica">
         <input type="file" name="csv" accept=".csv" required class="block w-full text-sm mb-4">
-        <button type="submit" class="bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">Carica e mostra anteprima</button>
+        <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">Carica e mostra anteprima</button>
       </form>
     </div>
   <?php endif; ?>

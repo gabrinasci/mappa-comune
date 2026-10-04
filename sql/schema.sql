@@ -55,6 +55,8 @@ CREATE TABLE punti_servizio (
   indirizzo VARCHAR(255) NOT NULL,
   lat DECIMAL(10,7) NOT NULL,
   lng DECIMAL(10,7) NOT NULL,
+  orario_testo TEXT NULL,
+  sovracomunale TINYINT(1) NOT NULL DEFAULT 0,
   descrizione TEXT NULL,
   telefono VARCHAR(50) NULL,
   email VARCHAR(190) NULL,
@@ -69,6 +71,9 @@ CREATE TABLE punti_servizio (
   FULLTEXT KEY ft_ricerca (nome, indirizzo, descrizione)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Orari strutturati giorno-per-giorno: opzionale, per inserimenti manuali precisi.
+-- La maggior parte dei dati reali arriva come testo libero in punti_servizio.orario_testo
+-- (es. "Lunedi 15-17.30, su appuntamento"), che l'import CSV valorizza direttamente.
 CREATE TABLE orari_apertura (
   id INT AUTO_INCREMENT PRIMARY KEY,
   punto_id INT NOT NULL,

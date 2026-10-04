@@ -34,8 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configurazione iniziale — Mappa Servizi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+<body class="bg-white min-h-screen flex items-center justify-center">
 <div class="bg-white shadow-sm rounded-lg p-8 w-full max-w-md">
   <h1 class="text-lg font-semibold text-blue-900 mb-1">Configurazione iniziale</h1>
   <p class="text-sm text-gray-600 mb-5">Nessun utente presente: crea il primo account, con ruolo superadmin (gestisce tutti e 3 i comuni).</p>
@@ -62,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label class="block text-sm font-medium mb-1" for="password_conferma">Conferma password</label>
       <input id="password_conferma" name="password_conferma" type="password" minlength="10" required class="w-full border rounded px-3 py-2 text-sm">
     </div>
-    <button type="submit" class="w-full bg-blue-800 text-white rounded py-2 text-sm font-medium">Crea account</button>
+    <button type="submit" class="w-full bg-primary text-white rounded py-2 text-sm font-medium">Crea account</button>
   </form>
 </div>
 </body>

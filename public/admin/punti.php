@@ -35,14 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dati = [
         'comune_id' => $comuneId,
         'categoria_id' => (int) $_POST['categoria_id'],
-        'nome' => trim($_POST['nome']),
-        'indirizzo' => trim($_POST['indirizzo']),
-        'lat' => (float) str_replace(',', '.', $_POST['lat']),
-        'lng' => (float) str_replace(',', '.', $_POST['lng']),
-        'descrizione' => trim($_POST['descrizione']) ?: null,
-        'telefono' => trim($_POST['telefono']) ?: null,
-        'email' => trim($_POST['email']) ?: null,
-        'sito_web' => trim($_POST['sito_web']) ?: null,
+        'nome' => trim($_POST['nome'] ?? ''),
+        'indirizzo' => trim($_POST['indirizzo'] ?? ''),
+        'lat' => (float) str_replace(',', '.', $_POST['lat'] ?? ''),
+        'lng' => (float) str_replace(',', '.', $_POST['lng'] ?? ''),
+        'orario_testo' => trim($_POST['orario_testo'] ?? '') ?: null,
+        'sovracomunale' => !empty($_POST['sovracomunale']) ? 1 : 0,
+        'descrizione' => trim($_POST['descrizione'] ?? '') ?: null,
+        'telefono' => trim($_POST['telefono'] ?? '') ?: null,
+        'email' => trim($_POST['email'] ?? '') ?: null,
+        'sito_web' => trim($_POST['sito_web'] ?? '') ?: null,
     ];
 
     $erroriForm = [];
@@ -51,26 +53,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$dati['lat'] || !$dati['lng']) $erroriForm[] = 'Coordinate lat/lng non valide.';
     if ($ambitoComuneId !== null && $comuneId !== $ambitoComuneId) $erroriForm[] = 'Non hai i permessi su questo comune.';
 
+    if ($id && !puntoInAmbito($pdo, $id, $ambitoComuneId)) $erroriForm[] = 'Punto servizio non trovato o non modificabile.';
+    if ($dati['sito_web'] !== null && !preg_match('#^https?://#i', $dati['sito_web'])) {
+        $dati['sito_web'] = 'https://' . ltrim($dati['sito_web'], '/');
+    }
+    if ($dati['sito_web'] !== null && !filter_var($dati['sito_web'], FILTER_VALIDATE_URL)) $erroriForm[] = 'Sito web non valido.';
+
     if (!$erroriForm) {
-        if ($id && puntoInAmbito($pdo, $id, $ambitoComuneId)) {
-            $stmt = $pdo->prepare('UPDATE punti_servizio SET comune_id=?, categoria_id=?, nome=?, indirizzo=?, lat=?, lng=?, descrizione=?, telefono=?, email=?, sito_web=? WHERE id=?');
+        if ($id) {
+            $stmt = $pdo->prepare('UPDATE punti_servizio SET comune_id=?, categoria_id=?, nome=?, indirizzo=?, lat=?, lng=?, orario_testo=?, sovracomunale=?, descrizione=?, telefono=?, email=?, sito_web=? WHERE id=?');
             $stmt->execute([...array_values($dati), $id]);
         } else {
-            $stmt = $pdo->prepare('INSERT INTO punti_servizio (comune_id, categoria_id, nome, indirizzo, lat, lng, descrizione, telefono, email, sito_web, creato_da) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+            $stmt = $pdo->prepare('INSERT INTO punti_servizio (comune_id, categoria_id, nome, indirizzo, lat, lng, orario_testo, sovracomunale, descrizione, telefono, email, sito_web, creato_da) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
             $stmt->execute([...array_values($dati), $utente['id']]);
             $id = (int) $pdo->lastInsertId();
         }
 
+        // Se è stato indicato un orario in testo libero ha la precedenza: si sostituisce
+        // l'eventuale orario strutturato giorno-per-giorno, invece di farli convivere.
         $pdo->prepare('DELETE FROM orari_apertura WHERE punto_id = ?')->execute([$id]);
-        $inserisciOrario = $pdo->prepare('INSERT INTO orari_apertura (punto_id, giorno_settimana, apertura, chiusura, chiuso) VALUES (?,?,?,?,?)');
-        foreach (NOMI_GIORNI_ADMIN as $giorno => $nome) {
-            $chiuso = !empty($_POST["chiuso_$giorno"]);
-            $apertura = trim($_POST["apertura_$giorno"] ?? '') ?: null;
-            $chiusura = trim($_POST["chiusura_$giorno"] ?? '') ?: null;
-            if ($chiuso || (!$apertura && !$chiusura)) {
-                $inserisciOrario->execute([$id, $giorno, null, null, 1]);
-            } else {
-                $inserisciOrario->execute([$id, $giorno, $apertura, $chiusura, 0]);
+        if ($dati['orario_testo'] === null) {
+            $inserisciOrario = $pdo->prepare('INSERT INTO orari_apertura (punto_id, giorno_settimana, apertura, chiusura, chiuso) VALUES (?,?,?,?,?)');
+            foreach (NOMI_GIORNI_ADMIN as $giorno => $nome) {
+                $chiuso = !empty($_POST["chiuso_$giorno"]);
+                $apertura = trim($_POST["apertura_$giorno"] ?? '') ?: null;
+                $chiusura = trim($_POST["chiusura_$giorno"] ?? '') ?: null;
+                if ($chiuso || (!$apertura && !$chiusura)) {
+                    $inserisciOrario->execute([$id, $giorno, null, null, 1]);
+                } else {
+                    $inserisciOrario->execute([$id, $giorno, $apertura, $chiusura, 0]);
+                }
             }
         }
 
@@ -113,8 +125,12 @@ $elenco = $stmt->fetchAll();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Punti servizio — Mappa Servizi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="bg-white text-gray-900 min-h-screen">
 <?php require __DIR__ . '/_nav.php'; ?>
 <main class="max-w-5xl mx-auto px-4 py-8">
 
@@ -160,6 +176,10 @@ $elenco = $stmt->fetchAll();
         <label class="block text-sm font-medium mb-1">Indirizzo</label>
         <input name="indirizzo" required value="<?= h($puntoModifica['indirizzo'] ?? '') ?>" class="w-full border rounded px-3 py-2 text-sm">
       </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="sovracomunale" <?= !empty($puntoModifica['sovracomunale']) ? 'checked' : '' ?>>
+        Servizio sovracomunale (visibile anche filtrando per un altro comune)
+      </label>
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium mb-1">Latitudine</label>
@@ -172,7 +192,7 @@ $elenco = $stmt->fetchAll();
       </div>
       <p class="text-xs text-gray-500 -mt-2">Suggerimento: cerca l'indirizzo su
         <a class="underline" href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap.org</a>,
-        clic destro sul punto → "Mostra indirizzo" per leggere lat/lng.</p>
+        clic destro sul punto, poi "Mostra indirizzo" per leggere lat/lng.</p>
 
       <div>
         <label class="block text-sm font-medium mb-1">Descrizione</label>
@@ -193,8 +213,14 @@ $elenco = $stmt->fetchAll();
         </div>
       </div>
 
+      <div>
+        <label class="block text-sm font-medium mb-1">Orario (testo libero)</label>
+        <textarea name="orario_testo" rows="2" placeholder="Es. Lunedì e giovedì 15-18, su appuntamento" class="w-full border rounded px-3 py-2 text-sm"><?= h($puntoModifica['orario_testo'] ?? '') ?></textarea>
+        <p class="text-xs text-gray-500 mt-1">Se compilato, sostituisce l'orario strutturato giorno per giorno qui sotto (utile per orari irregolari o "su appuntamento").</p>
+      </div>
+
       <fieldset class="border rounded p-3">
-        <legend class="text-sm font-medium px-1">Orari di apertura</legend>
+        <legend class="text-sm font-medium px-1">Orario strutturato giorno per giorno (alternativo al testo libero)</legend>
         <div class="space-y-1">
           <?php foreach (NOMI_GIORNI_ADMIN as $giorno => $nomeGiorno): $o = $orariModifica[$giorno] ?? null; ?>
             <div class="flex items-center gap-2 text-sm">
@@ -211,7 +237,7 @@ $elenco = $stmt->fetchAll();
       </fieldset>
 
       <div class="flex gap-2">
-        <button type="submit" class="bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">Salva</button>
+        <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">Salva</button>
         <a href="/admin/punti.php" class="border rounded px-4 py-2 text-sm font-medium">Annulla</a>
       </div>
     </form>
@@ -219,7 +245,7 @@ $elenco = $stmt->fetchAll();
   <?php else: ?>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-semibold">Punti servizio</h1>
-      <a href="/admin/punti.php?azione=nuovo" class="bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">+ Nuovo</a>
+      <a href="/admin/punti.php?azione=nuovo" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">+ Nuovo</a>
     </div>
     <table class="w-full text-sm bg-white rounded-lg shadow-sm overflow-hidden">
       <thead class="bg-gray-100 text-left">
@@ -228,7 +254,7 @@ $elenco = $stmt->fetchAll();
       <tbody class="divide-y">
         <?php foreach ($elenco as $p): ?>
           <tr>
-            <td class="px-3 py-2 font-medium"><?= h($p['nome']) ?></td>
+            <td class="px-3 py-2 font-medium"><?= h($p['nome']) ?> <?= $p['sovracomunale'] ? '<span class="text-xs text-primary">(sovracomunale)</span>' : '' ?></td>
             <td class="px-3 py-2"><?= h($p['categoria_nome']) ?></td>
             <td class="px-3 py-2"><?= h($p['comune_nome']) ?></td>
             <td class="px-3 py-2 text-right space-x-2">

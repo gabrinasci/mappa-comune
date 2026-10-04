@@ -23,8 +23,12 @@ $perComune = $stmt->fetchAll();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard — Mappa Servizi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="bg-white text-gray-900 min-h-screen">
 <?php require __DIR__ . '/_nav.php'; ?>
 <main class="max-w-5xl mx-auto px-4 py-8">
   <h1 class="text-xl font-semibold mb-4">Dashboard</h1>
@@ -38,9 +42,9 @@ $perComune = $stmt->fetchAll();
     <?php endforeach; ?>
   </div>
   <div class="mt-8 flex gap-3">
-    <a href="/admin/punti.php?azione=nuovo" class="bg-blue-800 text-white rounded px-4 py-2 text-sm font-medium">+ Nuovo punto servizio</a>
+    <a href="/admin/punti.php?azione=nuovo" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">+ Nuovo punto servizio</a>
     <a href="/admin/import.php" class="border rounded px-4 py-2 text-sm font-medium">Importa da CSV</a>
-    <a href="/index.php" target="_blank" class="border rounded px-4 py-2 text-sm font-medium">Vedi mappa pubblica ↗</a>
+    <a href="/index.php" target="_blank" class="border rounded px-4 py-2 text-sm font-medium">Apri la mappa pubblica</a>
   </div>
 </main>
 </body>

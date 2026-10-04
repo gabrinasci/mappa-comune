@@ -11,4 +11,7 @@ define('DB_PASS', '');
 // un User-Agent identificativo, non un'email pubblica: mettere un nome progetto + un contatto).
 define('NOMINATIM_USER_AGENT', 'MappaServiziComunali/1.0 (referente@comune.it)');
 
+// Base pubblica del sito, usata per costruire i link nelle email (non derivarla dalla richiesta).
+define('APP_BASE_URL', 'https://mappa.example.it');
+
 define('APP_TIMEZONE', 'Europe/Rome');

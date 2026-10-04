@@ -1,4 +1,5 @@
 /app/config/config.php
 /node_modules
+/dati_base
 *.log
 .DS_Store

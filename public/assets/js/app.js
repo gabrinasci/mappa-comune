@@ -11,7 +11,9 @@ const ICONE_CATEGORIA = {
 
 const ICONA_DEFAULT = '<path d="M12 2C7 2 3 6 3 11c0 6 9 11 9 11s9-5 9-11c0-5-4-9-9-9Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>';
 
-const NOMI_GIORNI = ['', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ2FicmluYXNjaSIsImEiOiJjbXV1ZDloZXIwc3o3MndzZG03OWViajNuIn0.T0CD_t-fU1yrPmylzjItVQ';
+
+const NOMI_GIORNI =['', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
 function normalizzaTesto(testo) {
     return (testo || '')
@@ -68,8 +70,10 @@ function mappaServizi() {
         iniziaLeaflet(elemento) {
             this.mappa = L.map(elemento, { scrollWheelZoom: true });
             this.mappa.setView([45.89, 12.17], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`, {
+                tileSize: 512,
+                zoomOffset: -1,
+                attribution: '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox</a> <a href="https://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a> <a href="https://www.mapbox.com/map-feedback/">Migliora la mappa</a>',
                 maxZoom: 20,
             }).addTo(this.mappa);
             this.layerMarker = L.layerGroup().addTo(this.mappa);
@@ -98,7 +102,9 @@ function mappaServizi() {
         get puntiFiltrati() {
             const ricerca = normalizzaTesto(this.ricerca).split(/\s+/).filter(Boolean);
             return this.punti.filter((p) => {
-                if (this.filtroComuni.length && !this.filtroComuni.includes(p.comune_id)) return false;
+                // I servizi sovracomunali restano visibili qualunque comune sia filtrato:
+                // servono i residenti di tutti i comuni, non solo quello della loro sede.
+                if (this.filtroComuni.length && !p.sovracomunale && !this.filtroComuni.includes(p.comune_id)) return false;
                 if (this.filtroCategorie.length && !this.filtroCategorie.includes(p.categoria_id)) return false;
                 if (!ricerca.length) return true;
                 const testo = normalizzaTesto([p.nome, p.indirizzo, p.categoria_nome, p.comune_nome, p.descrizione].join(' '));
