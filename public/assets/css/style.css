@@ -14,7 +14,7 @@
 .cluster-servizi { background: transparent; }
 .cluster-servizi span {
   display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 50%;
-  background: #00194B; color: #fff; font: 600 13px "Titillium Web", Arial, sans-serif;
-  border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #ffffff; color: #00194B; font: 600 12px "Titillium Web", Arial, sans-serif;
+  border: 2px solid rgba(0, 25, 75, 0.35); box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
 }
