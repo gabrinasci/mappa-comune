@@ -193,6 +193,11 @@ function mappaServizi() {
             this.selezionato = null;
         },
 
+        svgIconaCategoria(punto) {
+            const path = ICONE_CATEGORIA[punto.categoria_icona] || ICONA_DEFAULT;
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true" focusable="false">${path}</svg>`;
+        },
+
         linkIndicazioni(punto) {
             return `https://www.google.com/maps/dir/?api=1&destination=${punto.lat},${punto.lng}`;
         },

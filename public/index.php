@@ -145,13 +145,17 @@
 
     <template x-if="!selezionato">
       <div class="p-4">
-        <p class="text-sm text-gray-600 mb-3" x-text="puntiFiltrati.length + ' servizi'"></p>
+        <p class="text-sm text-gray-600 mb-2" x-text="puntiFiltrati.length + ' servizi'"></p>
         <ul class="divide-y border-t">
           <template x-for="p in puntiFiltrati" :key="p.id">
             <li>
-              <button type="button" @click="seleziona(p)" class="w-full text-left py-2 hover:bg-gray-100">
-                <span class="block text-sm font-semibold text-navy" x-text="p.nome"></span>
-                <span class="block text-xs text-gray-600" x-text="p.categoria_nome + ' · ' + p.comune_nome"></span>
+              <button type="button" @click="seleziona(p)" class="w-full text-left flex items-start gap-3 py-3 px-2 hover:bg-gray-100">
+                <span class="shrink-0 mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" :style="`background:${p.colore_hex}`" x-html="svgIconaCategoria(p)"></span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold text-navy" x-text="p.nome"></span>
+                  <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full" :style="`background:${p.colore_hex}1a;color:${p.colore_hex}`" x-text="p.categoria_nome"></span>
+                  <span class="block mt-1 text-xs text-gray-600" x-text="p.comune_nome"></span>
+                </span>
               </button>
             </li>
           </template>
