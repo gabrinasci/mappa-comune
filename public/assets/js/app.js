@@ -42,6 +42,8 @@ function mappaServizi() {
         mappa: null,
         layerMarker: null,
         layerConfini: null,
+        layerPosizione: null,
+        statoGeo: '',
         nomiGiorni: NOMI_GIORNI,
         filtriAperti: false,
         suggerimentiAperti: false,
@@ -91,6 +93,33 @@ function mappaServizi() {
             } catch (e) {
                 // File non ancora presente: nessun problema, il layer si aggiunge quando disponibile.
             }
+        },
+
+        geolocalizza() {
+            if (!navigator.geolocation) {
+                this.statoGeo = 'Geolocalizzazione non disponibile su questo dispositivo.';
+                return;
+            }
+            this.statoGeo = 'Ricerca della posizione in corso...';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const latlng = [pos.coords.latitude, pos.coords.longitude];
+                    this.statoGeo = '';
+                    if (!this.mappa) return;
+                    this.mappa.setView(latlng, 16);
+                    if (this.layerPosizione) {
+                        this.layerPosizione.setLatLng(latlng);
+                    } else {
+                        this.layerPosizione = L.circleMarker(latlng, {
+                            radius: 8, color: '#ffffff', weight: 3, fillColor: '#0066CC', fillOpacity: 1,
+                        }).addTo(this.mappa);
+                    }
+                },
+                () => {
+                    this.statoGeo = 'Posizione non disponibile. Verifica di aver concesso l\'accesso alla posizione nel browser.';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
         },
 
         toggleConfini(mostra) {

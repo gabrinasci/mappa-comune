@@ -59,6 +59,7 @@
         Nessun risultato per "<span x-text="ricerca"></span>"
       </p>
     </div>
+    <button type="button" @click="geolocalizza()" aria-label="Mostra la mia posizione sulla mappa" class="shrink-0 border rounded-full px-3 py-2 text-sm font-medium bg-white hover:bg-gray-100">Dove sono</button>
     </div>
 
     <!-- Pulsante filtri (comune + categoria), sostituisce le chip -->
@@ -125,6 +126,7 @@
   <div class="relative flex-1">
     <div x-ref="mappa" id="mappa" class="absolute inset-0" role="application" aria-label="Mappa dei servizi comunali"></div>
 
+    <p x-show="statoGeo" x-text="statoGeo" role="status" class="absolute top-3 left-3 bg-white shadow rounded px-3 py-2 text-sm text-gray-700"></p>
     <p x-show="caricamentoFallito" class="absolute inset-x-0 top-0 bg-red-100 text-red-800 text-sm px-4 py-2">
       Non è stato possibile caricare i dati dei servizi. Riprova più tardi.
     </p>
