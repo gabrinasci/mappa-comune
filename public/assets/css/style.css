@@ -8,3 +8,5 @@
   outline: 3px solid #1d4ed8;
   outline-offset: 2px;
 }
+
+[x-cloak] { display: none !important; }

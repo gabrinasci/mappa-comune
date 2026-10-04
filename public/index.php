@@ -64,45 +64,46 @@
     </button>
     </div>
 
-    <!-- Pulsante filtri (comune + categoria), sostituisce le chip -->
-    <div class="relative shrink-0" @click.outside="filtriAperti = false">
-      <button type="button" @click="filtriAperti = !filtriAperti" :aria-expanded="filtriAperti" aria-haspopup="true"
-              class="relative flex items-center gap-1.5 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white">
-        <span class="hidden sm:inline">Filtri</span>
-        <span x-show="numeroFiltriAttivi" x-text="numeroFiltriAttivi"
-              class="absolute -top-1.5 -right-1.5 bg-primary text-white hover:bg-primary-dark text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
-      </button>
+    <!-- Filtri: pannello laterale (desktop) o foglio dal basso (mobile) -->
+    <button type="button" @click="filtriAperti = true" :aria-expanded="filtriAperti" aria-controls="pannello-filtri"
+            class="relative shrink-0 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100">
+      <span>Filtri</span>
+      <span x-show="numeroFiltriAttivi" x-text="numeroFiltriAttivi"
+            class="absolute -top-1.5 -right-1.5 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
+    </button>
+  </div>
 
-      <div x-show="filtriAperti" @click="filtriAperti = false" class="fixed inset-0 bg-black/30 z-30 sm:hidden"></div>
+  <div x-show="filtriAperti" x-cloak @keydown.escape.window="filtriAperti = false" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/30" @click="filtriAperti = false"></div>
+    <aside id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"
+           class="absolute bottom-0 inset-x-0 max-h-[80vh] bg-white rounded-t-lg shadow-lg flex flex-col
+                  sm:bottom-auto sm:inset-y-0 sm:right-0 sm:left-auto sm:w-96 sm:max-h-none sm:rounded-none">
+      <div class="flex items-center justify-between px-5 py-4 border-b">
+        <h2 id="titolo-filtri" class="text-lg font-semibold text-navy">Filtri</h2>
+        <button type="button" @click="filtriAperti = false" class="text-sm text-primary hover:underline">Chiudi</button>
+      </div>
 
-      <div x-show="filtriAperti"
-           class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-lg p-4 max-h-[75vh] overflow-y-auto
-                  sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 sm:rounded-lg sm:max-h-[70vh]">
-        <div class="flex items-center justify-between mb-3 sm:hidden">
-          <span class="font-semibold">Filtri</span>
-          <button type="button" @click="filtriAperti = false" aria-label="Chiudi filtri" class="text-gray-400">×</button>
-        </div>
-
-        <fieldset class="mb-4">
-          <legend class="text-xs font-semibold uppercase text-gray-500 mb-2">Comune</legend>
-          <div class="space-y-1">
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+        <fieldset>
+          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Comune</legend>
+          <div class="space-y-2">
             <template x-for="c in comuni" :key="c.id">
-              <label class="flex items-center gap-2 text-sm py-1 cursor-pointer">
+              <label class="flex items-center gap-3 text-sm cursor-pointer">
                 <input type="checkbox" :checked="filtroComuni.includes(c.id)" @change="toggleFiltro('filtroComuni', c.id)"
-                       class="rounded border-gray-300">
+                       class="w-4 h-4 rounded border-gray-400 text-primary">
                 <span x-text="c.nome"></span>
               </label>
             </template>
           </div>
         </fieldset>
 
-        <fieldset class="mb-4">
-          <legend class="text-xs font-semibold uppercase text-gray-500 mb-2">Area tematica</legend>
-          <div class="space-y-1">
+        <fieldset>
+          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Area tematica</legend>
+          <div class="space-y-2">
             <template x-for="cat in categorie" :key="cat.id">
-              <label class="flex items-center gap-2 text-sm py-1 cursor-pointer">
+              <label class="flex items-center gap-3 text-sm cursor-pointer">
                 <input type="checkbox" :checked="filtroCategorie.includes(cat.id)" @change="toggleFiltro('filtroCategorie', cat.id)"
-                       class="rounded border-gray-300">
+                       class="w-4 h-4 rounded border-gray-400 text-primary">
                 <span class="inline-block w-3 h-3 rounded-full shrink-0" :style="`background:${cat.colore_hex}`"></span>
                 <span x-text="cat.nome"></span>
               </label>
@@ -110,17 +111,16 @@
           </div>
         </fieldset>
 
-        <label class="flex items-center gap-2 text-sm mb-4 cursor-pointer" x-show="confiniDisponibili">
-          <input type="checkbox" @change="toggleConfini($event.target.checked)" class="rounded border-gray-300">
+        <label class="flex items-center gap-3 text-sm cursor-pointer" x-show="confiniDisponibili">
+          <input type="checkbox" @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
           Mostra confini comunali
         </label>
-
-        <div class="flex gap-2">
-          <button type="button" @click="azzeraFiltri()" class="flex-1 border rounded-lg py-2 text-sm font-medium">Azzera</button>
-          <button type="button" @click="filtriAperti = false" class="flex-1 bg-primary text-white hover:bg-primary-dark rounded-lg py-2 text-sm font-medium">Applica</button>
-        </div>
       </div>
-    </div>
+
+      <div class="px-5 py-4 border-t">
+        <button type="button" @click="azzeraFiltri()" class="w-full border border-gray-400 rounded py-2 text-sm font-medium hover:bg-gray-100">Azzera filtri</button>
+      </div>
+    </aside>
   </div>
 </header>
 
