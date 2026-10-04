@@ -20,12 +20,13 @@
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
 <header class="bg-white border-b-4 border-navy shadow-sm z-20 relative">
-  <div class="flex flex-wrap items-center justify-center gap-3 px-3 py-2 sm:px-4 sm:py-3">
+  <div class="flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3">
     <a href="/index.php" class="flex items-center gap-3 shrink-0" aria-label="Punti in comune — Mappa servizi">
       <img src="/assets/img/punti-in-comune_logo.svg" alt="Punti in comune" class="h-10 sm:h-12 w-auto">
     </a>
 
     <!-- Ricerca con autocompletamento (combobox accessibile) -->
+    <div class="flex-1 min-w-0 flex justify-center">
     <div class="relative w-full sm:w-1/2 min-w-0" @click.outside="chiudiSuggerimenti()">
       <label class="sr-only" for="ricerca">Cerca ufficio o servizio per nome, indirizzo o categoria</label>
       <input id="ricerca" type="text" x-model="ricerca"
@@ -57,6 +58,7 @@
          class="absolute z-30 mt-1 w-full bg-white rounded-lg shadow-lg border px-3 py-2 text-sm text-gray-500">
         Nessun risultato per "<span x-text="ricerca"></span>"
       </p>
+    </div>
     </div>
 
     <!-- Pulsante filtri (comune + categoria), sostituisce le chip -->
