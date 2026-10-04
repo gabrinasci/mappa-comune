@@ -83,13 +83,18 @@ function mappaServizi() {
 
         async caricaConfiniSeDisponibili() {
             try {
-                const risposta = await fetch('/data/confini.geojson', { method: 'GET' });
+                const risposta = await fetch('/assets/geo/confini.geojson', { method: 'GET' });
                 if (!risposta.ok) return;
                 const geojson = await risposta.json();
                 this.layerConfini = L.geoJSON(geojson, {
-                    style: { color: '#1e3a8a', weight: 2, fill: false, dashArray: '4 3' },
+                    interactive: false,
+                    style: { color: '#0066CC', weight: 2, fillColor: '#0066CC', fillOpacity: 0.12 },
+                    onEachFeature: (feature, layer) => {
+                        layer.bindTooltip(feature.properties.name, { sticky: true });
+                    },
                 });
                 this.confiniDisponibili = true;
+                if (this.mappa) this.toggleConfini(true);
             } catch (e) {
                 // File non ancora presente: nessun problema, il layer si aggiunge quando disponibile.
             }

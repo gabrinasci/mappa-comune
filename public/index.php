@@ -212,7 +212,7 @@
         </fieldset>
 
         <label class="flex items-center gap-3 text-sm cursor-pointer" x-show="confiniDisponibili">
-          <input type="checkbox" @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
+          <input type="checkbox" checked @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
           Mostra confini comunali
         </label>
       </div>
