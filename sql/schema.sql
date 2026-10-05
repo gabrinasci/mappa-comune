@@ -106,4 +106,5 @@ INSERT INTO categorie (nome, colore_hex, icona, ordine) VALUES
   ('Tributi', '#FFCB03', 'tributi', 2),
   ('Sociale', '#0BB14B', 'sociale', 3),
   ('Istruzione', '#F06798', 'istruzione', 4),
-  ('Biblioteca', '#F05202', 'biblioteca', 5);
+  ('Biblioteca', '#F05202', 'biblioteca', 5),
+  ('Sanità', '#003F85', 'sanita', 6);

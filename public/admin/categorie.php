@@ -9,7 +9,7 @@ if (!isSuperadmin($utente)) {
 }
 $pdo = db();
 
-const ICONE_DISPONIBILI = ['anagrafe', 'tributi', 'sociale', 'istruzione', 'biblioteca'];
+const ICONE_DISPONIBILI = ['anagrafe', 'tributi', 'sociale', 'istruzione', 'biblioteca', 'sanita'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrfVerifica();
