@@ -5,6 +5,7 @@
     <?php if (isSuperadmin($utente)): ?>
       <a href="/admin/categorie.php" class="text-sm text-gray-700 hover:text-primary">Categorie</a>
     <?php endif; ?>
+    <a href="/admin/avvisi.php" class="text-sm text-gray-700 hover:text-primary">Avvisi</a>
     <a href="/admin/import.php" class="text-sm text-gray-700 hover:text-primary">Importa CSV</a>
     <?php if (isSuperadmin($utente)): ?>
       <a href="/admin/utenti.php" class="text-sm text-gray-700 hover:text-primary">Utenti</a>

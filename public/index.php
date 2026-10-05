@@ -1,4 +1,10 @@
-<?php require_once __DIR__ . '/../app/config/config.php'; ?>
+<?php
+require_once __DIR__ . '/../app/config/config.php';
+require_once __DIR__ . '/../app/lib/helpers.php';
+require_once __DIR__ . '/../app/lib/avvisi.php';
+
+$avvisi = avvisiAttivi();
+?>
 <!doctype html>
 <html lang="it">
 <head>
@@ -76,6 +82,57 @@
   </div>
 
 </header>
+
+<?php if ($avvisi): $totaleAvvisi = count($avvisi); ?>
+<section x-data="bannerAvvisi(<?= $totaleAvvisi ?>)" @mouseenter="sospeso = true" @mouseleave="sospeso = false"
+         @focusin="sospeso = true" @focusout="sospeso = false"
+         aria-roledescription="carosello" aria-label="Avvisi"
+         class="relative z-10 bg-[#EEF4FB] border-b border-[#D3E2F3] text-navy">
+  <div class="flex items-center gap-2 px-3 sm:px-4 py-1.5">
+    <div class="flex-1 min-w-0 overflow-hidden">
+      <ul class="flex transition-transform duration-500 ease-in-out motion-reduce:transition-none"
+          :style="`transform: translateX(-${attivo * 100}%)`" aria-live="off">
+        <?php foreach ($avvisi as $i => $a): $tipo = TIPI_AVVISO[$a['tipo']] ?? TIPI_AVVISO['info']; ?>
+          <li class="w-full shrink-0 flex items-center gap-2.5 min-w-0"
+              role="group" aria-roledescription="avviso" aria-label="<?= $i + 1 ?> di <?= $totaleAvvisi ?>"
+              <?php if ($i > 0): ?>inert aria-hidden="true"<?php endif; ?>
+              :inert="attivo !== <?= $i ?>" :aria-hidden="attivo !== <?= $i ?> ? 'true' : 'false'">
+            <span class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white" style="background:<?= h($tipo['colore']) ?>">
+              <?= svgIconaAvviso($a['tipo']) ?>
+            </span>
+            <p class="min-w-0 text-sm leading-snug line-clamp-2 sm:line-clamp-1">
+              <span class="sr-only"><?= h($tipo['etichetta']) ?>: </span>
+              <?php if ($a['comune_nome']): ?><strong class="font-semibold"><?= h($a['comune_nome']) ?> ·</strong><?php endif; ?>
+              <?php if ($a['link_url']): ?>
+                <a href="<?= h($a['link_url']) ?>" target="_blank" rel="noopener" class="underline underline-offset-2 hover:text-primary"><?= h($a['testo']) ?><span class="sr-only"> (si apre in una nuova scheda)</span></a>
+              <?php else: ?>
+                <?= h($a['testo']) ?>
+              <?php endif; ?>
+            </p>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+
+    <?php if ($totaleAvvisi > 1): ?>
+      <div class="shrink-0 flex items-center sm:gap-0.5 -mr-1.5 sm:mr-0 text-navy">
+        <button type="button" @click="precedente()" aria-label="Avviso precedente" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <span class="hidden sm:inline text-xs tabular-nums w-8 text-center" aria-hidden="true"><span x-text="attivo + 1">1</span>/<?= $totaleAvvisi ?></span>
+        <button type="button" @click="successivo()" aria-label="Avviso successivo" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button type="button" @click="inPausa = !inPausa" :aria-label="inPausa ? 'Avvia scorrimento automatico degli avvisi' : 'Metti in pausa lo scorrimento degli avvisi'"
+                aria-label="Metti in pausa lo scorrimento degli avvisi" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white">
+          <svg x-show="!inPausa" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>
+          <svg x-show="inPausa" x-cloak class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <main id="contenuto" class="flex-1 flex overflow-hidden relative">
   <div class="relative flex-1">

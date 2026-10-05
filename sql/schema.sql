@@ -84,6 +84,24 @@ CREATE TABLE orari_apertura (
   FOREIGN KEY (punto_id) REFERENCES punti_servizio(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Avvisi brevi (cambi orario, novità) mostrati a scorrimento nel banner della home.
+-- Visibili solo se attivi e, quando indicate, entro le date di inizio/fine.
+CREATE TABLE avvisi (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  comune_id INT NULL COMMENT 'NULL = avviso valido per tutti i comuni',
+  tipo ENUM('info','orari','novita','urgente') NOT NULL DEFAULT 'info',
+  testo VARCHAR(255) NOT NULL,
+  link_url VARCHAR(255) NULL,
+  data_inizio DATE NULL,
+  data_fine DATE NULL,
+  attivo TINYINT(1) NOT NULL DEFAULT 1,
+  ordine INT NOT NULL DEFAULT 0,
+  creato_da INT NULL,
+  creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (comune_id) REFERENCES comuni(id) ON DELETE CASCADE,
+  FOREIGN KEY (creato_da) REFERENCES utenti(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE import_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   utente_id INT NULL,

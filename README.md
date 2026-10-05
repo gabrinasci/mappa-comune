@@ -16,6 +16,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
    - Se il database esisteva già prima dell'introduzione di profilo/log accessi/SMTP, esegui anche `mysql -u utente -p mappa_servizi < sql/migrazione_001_profilo_utenti.sql`.
    - Se esisteva prima dell'introduzione dell'orario in testo libero, esegui anche `sql/migrazione_002_orario_testo.sql`.
    - Se esisteva prima del flag "servizio sovracomunale", esegui anche `sql/migrazione_003_sovracomunale.sql`.
+   - Se esisteva prima del banner avvisi in home, esegui anche `sql/migrazione_006_avvisi.sql`.
    - Tutte le migrazioni sono da eseguire una tantum e non toccano i dati esistenti.
 4. Punta un server PHP alla cartella `public/` (document root). In locale, ad esempio: `php -S localhost:8000 -t public`.
 5. Apri `/admin/setup.php`: essendo il database senza utenti, mostra il wizard per creare il primo account (superadmin). Dopo la creazione verrai reindirizzato al login.

@@ -257,3 +257,31 @@ function mappaServizi() {
         },
     };
 }
+
+// Banner avvisi della home: scorre da solo ogni pochi secondi, si ferma al passaggio del
+// mouse o del focus e con il pulsante pausa (WCAG 2.2.2). Con "riduci movimento" parte in pausa.
+const INTERVALLO_AVVISI_MS = 6000;
+
+function bannerAvvisi(totale) {
+    return {
+        totale,
+        attivo: 0,
+        inPausa: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        sospeso: false,
+
+        init() {
+            if (this.totale < 2) return;
+            setInterval(() => {
+                if (!this.inPausa && !this.sospeso && !document.hidden) this.successivo();
+            }, INTERVALLO_AVVISI_MS);
+        },
+
+        successivo() {
+            this.attivo = (this.attivo + 1) % this.totale;
+        },
+
+        precedente() {
+            this.attivo = (this.attivo - 1 + this.totale) % this.totale;
+        },
+    };
+}
