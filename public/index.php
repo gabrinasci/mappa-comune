@@ -190,17 +190,17 @@ $avvisi = avvisiAttivi();
         <h2 class="mt-2 text-xl font-semibold" x-text="selezionato.nome"></h2>
         <p class="text-sm text-gray-600 mt-1"><span x-text="selezionato.indirizzo + ', ' + selezionato.comune_nome"></span></p>
 
-        <template x-if="selezionato.orario_testo">
+        <template x-if="selezionato?.orario_testo">
           <div class="mt-4">
             <h3 class="text-xs font-semibold uppercase text-gray-500">Orari di apertura</h3>
-            <p class="mt-1 text-sm whitespace-pre-line" x-text="selezionato.orario_testo"></p>
+            <p class="mt-1 text-sm whitespace-pre-line" x-text="selezionato?.orario_testo"></p>
           </div>
         </template>
-        <template x-if="!selezionato.orario_testo && selezionato.orari.length">
+        <template x-if="selezionato && !selezionato.orario_testo && selezionato.orari?.length">
           <div class="mt-4">
             <h3 class="text-xs font-semibold uppercase text-gray-500">Orari di apertura</h3>
             <dl class="mt-1 text-sm">
-              <template x-for="o in selezionato.orari" :key="o.giorno">
+              <template x-for="o in (selezionato?.orari ?? [])" :key="o.giorno">
                 <div class="flex justify-between py-0.5">
                   <dt x-text="nomiGiorni[o.giorno]"></dt>
                   <dd :class="o.chiuso ? 'text-gray-400 italic' : ''" x-text="o.chiuso ? 'Chiuso' : o.apertura + ' - ' + o.chiusura"></dd>

@@ -235,6 +235,9 @@ function mappaServizi() {
         },
 
         seleziona(punto) {
+            // Su desktop il pannello filtri copre la colonna dei dettagli: va chiuso, altrimenti
+            // il dettaglio si apre sotto e sembra che il clic sul punto non sia stato preso.
+            this.filtriAperti = false;
             this.selezionato = punto;
             if (this.mappa) this.mappa.panTo([punto.lat, punto.lng]);
         },
