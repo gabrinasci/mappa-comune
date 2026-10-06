@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-white min-h-screen flex items-center justify-center">
 <div class="bg-white shadow-sm rounded-lg p-8 w-full max-w-md">
   <h1 class="text-lg font-semibold text-blue-900 mb-1">Configurazione iniziale</h1>
-  <p class="text-sm text-gray-600 mb-5">Nessun utente presente: crea il primo account, con ruolo superadmin (gestisce tutti e 3 i comuni).</p>
+  <p class="text-sm text-gray-600 mb-5">Nessun utente presente: crea il primo account, con ruolo superadmin (gestisce tutti i comuni).</p>
 
   <?php if ($errore): ?>
     <p class="bg-red-100 text-red-800 text-sm px-3 py-2 rounded mb-4"><?= h($errore) ?></p>

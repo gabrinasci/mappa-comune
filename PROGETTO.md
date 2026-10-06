@@ -2,13 +2,13 @@
 
 ## 1. Obiettivo
 
-Portale unico che mostra su un'unica mappa i servizi offerti da 3 comuni (uffici, sportelli, centri, biblioteche, ecc.), aggiornabile autonomamente dai dipendenti comunali tramite pannello di amministrazione, con filtri per comune e per area tematica, ricerca testuale, layer dei confini amministrativi, e import massivo da CSV/Excel. Vincoli guida: costi di esercizio bassi/nulli, semplicità di manutenzione futura, conformità ai requisiti di accessibilità AGID/WCAG 2.1 AA.
+Portale unico che mostra su un'unica mappa i servizi offerti da 4 comuni (Farra di Soligo, Pieve di Soligo, Refrontolo, Sernaglia della Battaglia) (uffici, sportelli, centri, biblioteche, ecc.), aggiornabile autonomamente dai dipendenti comunali tramite pannello di amministrazione, con filtri per comune e per area tematica, ricerca testuale, layer dei confini amministrativi, e import massivo da CSV/Excel. Vincoli guida: costi di esercizio bassi/nulli, semplicità di manutenzione futura, conformità ai requisiti di accessibilità AGID/WCAG 2.1 AA.
 
 ## 2. Stack tecnologico
 
 ### Backend: **PHP 8 + MySQL, senza framework pesante**
 
-Motivazione: è già disponibile hosting condiviso PHP per i 3 comuni → costo aggiuntivo zero, deploy via semplice upload file (nessun processo di build, nessun servizio da tenere sempre attivo come richiederebbe Node.js). PHP+MySQL è inoltre lo stack più diffuso e facilmente sostituibile da qualunque futuro manutentore (è lo standard de facto per i siti della PA italiana).
+Motivazione: è già disponibile hosting condiviso PHP per i comuni → costo aggiuntivo zero, deploy via semplice upload file (nessun processo di build, nessun servizio da tenere sempre attivo come richiederebbe Node.js). PHP+MySQL è inoltre lo stack più diffuso e facilmente sostituibile da qualunque futuro manutentore (è lo standard de facto per i siti della PA italiana).
 
 Scelte di dettaglio:
 - **Nessun framework "pesante"** (Laravel/Symfony) in prima battuta: richiedono Composer/SSH e più risorse, non garantiti su ogni hosting condiviso economico. Si struttura il codice in stile MVC-lite fatto a mano (routing minimale, cartelle separate per pagine pubbliche / admin / API), che resta comunque leggibile e ordinato.
@@ -71,12 +71,12 @@ import_log
   id, utente_id, nome_file, righe_importate, righe_errore, eseguito_il
 ```
 
-Il layer dei **confini amministrativi** dei 3 comuni NON entra nel database: è un file GeoJSON statico (`/data/confini.geojson`) caricato da Leaflet come overlay. Scelta deliberata: permette di aggiungerlo in un secondo momento (come da vostra indicazione) senza toccare lo schema dati né il codice dell'applicazione. Quando sarà il momento, fonte gratuita consigliata: confini ISTAT (dataset open data dei limiti amministrativi comunali).
+Il layer dei **confini amministrativi** dei comuni NON entra nel database: è un file GeoJSON statico (`/data/confini.geojson`) caricato da Leaflet come overlay. Scelta deliberata: permette di aggiungerlo in un secondo momento (come da vostra indicazione) senza toccare lo schema dati né il codice dell'applicazione. Quando sarà il momento, fonte gratuita consigliata: confini ISTAT (dataset open data dei limiti amministrativi comunali).
 
 ## 4. Permessi e ruoli
 
 - **Admin di comune**: vede e modifica solo i punti servizio del proprio `comune_id`.
-- **Superadmin**: vede e modifica i punti di tutti e 3 i comuni, gestisce anche utenti e categorie.
+- **Superadmin**: vede e modifica i punti di tutti i comuni, gestisce anche utenti e categorie.
 - Nessun flusso di approvazione in questa fase (le modifiche sono immediatamente pubbliche): è la scelta più semplice indicata. Se in futuro servisse una bozza/approvazione, si aggiungerà una colonna `stato` a `punti_servizio` senza impatti sul resto.
 
 ## 5. Funzionalità

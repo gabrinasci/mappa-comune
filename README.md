@@ -12,11 +12,12 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
 
 1. Crea un database MySQL vuoto (es. `mappa_servizi`).
 2. Copia la configurazione: `cp app/config/config.example.php app/config/config.php` e inserisci host/nome db/utente/password reali. Questo file resta escluso da git (contiene credenziali).
-3. Carica lo schema: `mysql -u utente -p mappa_servizi < sql/schema.sql` (crea le tabelle e i dati iniziali: 3 comuni, 5 categorie).
+3. Carica lo schema: `mysql -u utente -p mappa_servizi < sql/schema.sql` (crea le tabelle e i dati iniziali: 4 comuni, 6 categorie).
    - Se il database esisteva già prima dell'introduzione di profilo/log accessi/SMTP, esegui anche `mysql -u utente -p mappa_servizi < sql/migrazione_001_profilo_utenti.sql`.
    - Se esisteva prima dell'introduzione dell'orario in testo libero, esegui anche `sql/migrazione_002_orario_testo.sql`.
    - Se esisteva prima del flag "servizio sovracomunale", esegui anche `sql/migrazione_003_sovracomunale.sql`.
    - Se esisteva prima del banner avvisi in home, esegui anche `sql/migrazione_006_avvisi.sql`.
+   - Se esisteva prima dell'aggiunta di Refrontolo, esegui anche `sql/migrazione_007_comune_refrontolo.sql`.
    - Tutte le migrazioni sono da eseguire una tantum e non toccano i dati esistenti.
 4. Punta un server PHP alla cartella `public/` (document root). In locale, ad esempio: `php -S localhost:8000 -t public`.
 5. Apri `/admin/setup.php`: essendo il database senza utenti, mostra il wizard per creare il primo account (superadmin). Dopo la creazione verrai reindirizzato al login.
@@ -62,7 +63,7 @@ Da rifare (`npm run build:css`) ogni volta che si aggiungono nuove classi Tailwi
 
 - **Geocoding in fase di import**: usa Nominatim (OpenStreetMap), gratuito ma limitato a 1 richiesta/secondo; per import di poche decine di righe va bene, per import molto grandi valutare di inserire le coordinate già nel CSV.
 - **Confini comunali**: non ancora inclusi. Quando disponibili, basta salvare il file in `data/confini.geojson` (GeoJSON, WGS84): la mappa lo rileva automaticamente e mostra il toggle "Mostra confini comunali" nel pannello filtri, senza bisogno di modificare il codice.
-- **Utenti**: un `admin_comune` vede/modifica solo i punti del proprio comune (import CSV compreso); un `superadmin` gestisce tutti e 3 i comuni, le categorie e gli utenti (`admin/utenti.php`).
+- **Utenti**: un `admin_comune` vede/modifica solo i punti del proprio comune (import CSV compreso); un `superadmin` gestisce tutti i comuni, le categorie e gli utenti (`admin/utenti.php`).
 - **Creazione utenti**: il superadmin non imposta mai la password di un altro utente — alla creazione (o su richiesta, pulsante "Link reset") viene inviata un'email con un link valido 1 ora per scegliere la password. Se l'SMTP non è (ancora) configurato, il link viene comunque mostrato a video da copiare manualmente.
 - **Password**: sempre salvate con hash bcrypt (`password_hash`), mai in chiaro né in forma reversibile.
 - **Log accessi**: ogni tentativo di login (riuscito o fallito) viene registrato; ogni utente vede i propri ultimi accessi in `admin/profilo.php`.

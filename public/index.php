@@ -230,7 +230,7 @@ $avvisi = avvisiAttivi();
 
 <footer class="border-t bg-white text-xs text-gray-600">
   <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
-    <span>Punti in comune · Farra di Soligo, Pieve di Soligo, Sernaglia della Battaglia</span>
+    <span>Punti in comune · Farra di Soligo, Pieve di Soligo, Refrontolo, Sernaglia della Battaglia</span>
     <nav aria-label="Informazioni legali" class="flex gap-4">
       <a href="/privacy.php" class="underline hover:text-primary">Privacy policy</a>
       <a href="/cookie.php" class="underline hover:text-primary">Cookie policy</a>

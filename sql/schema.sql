@@ -113,11 +113,12 @@ CREATE TABLE import_log (
   FOREIGN KEY (utente_id) REFERENCES utenti(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Dati iniziali: 3 comuni (nomi da confermare/correggere), 5 categorie con colore+icona distinti.
+-- Dati iniziali: 4 comuni, 6 categorie con colore+icona distinti.
 INSERT INTO comuni (nome, slug) VALUES
   ('Farra di Soligo', 'farra-di-soligo'),
   ('Pieve di Soligo', 'pieve-di-soligo'),
-  ('Sernaglia della Battaglia', 'sernaglia-della-battaglia');
+  ('Sernaglia della Battaglia', 'sernaglia-della-battaglia'),
+  ('Refrontolo', 'refrontolo');
 
 INSERT INTO categorie (nome, colore_hex, icona, ordine) VALUES
   ('Anagrafe', '#009BDF', 'anagrafe', 1),
