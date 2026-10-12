@@ -1,13 +1,13 @@
+<?php require_once __DIR__ . '/../app/lib/helpers.php'; ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Elenco Servizi Comunali</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/assets/css/style.css">
+<?= stiliComuni() ?>
 </head>
-<body class="bg-white text-gray-900" x-data="mappaServizi()" x-init="init(null)">
+<body class="bg-white text-gray-900" x-data="mappaServizi()">
 
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
@@ -23,7 +23,7 @@
     <div class="relative shrink-0" @click.outside="filtriAperti = false">
       <button type="button" @click="filtriAperti = !filtriAperti" :aria-expanded="filtriAperti" aria-haspopup="true"
               class="relative flex items-center gap-1.5 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white">
-        <span class="hidden sm:inline">Filtri</span>
+        <span>Filtri</span>
         <span x-show="numeroFiltriAttivi" x-text="numeroFiltriAttivi"
               class="absolute -top-1.5 -right-1.5 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
       </button>
@@ -89,7 +89,11 @@
                 :style="`background:${p.colore_hex}20; color:${p.colore_hex}`" x-text="p.categoria_nome"></span>
         </div>
         <p class="text-sm text-gray-600 mt-1" x-text="p.indirizzo + ', ' + p.comune_nome"></p>
-        <p class="text-sm text-gray-600" x-text="p.telefono || ''"></p>
+        <p x-show="p.telefono" class="text-sm text-gray-600"><span class="sr-only">Telefono: </span>
+            <template x-for="(pezzo, i) in pezziContatto(p.telefono)" :key="i">
+              <span><a x-show="pezzo.tipo !== 'testo'" :href="pezzo.href" class="text-blue-800 underline whitespace-nowrap" x-text="pezzo.testo"></a><span x-show="pezzo.tipo === 'testo'" x-text="pezzo.testo"></span> </span>
+            </template>
+        </p>
         <a :href="linkIndicazioni(p)" target="_blank" rel="noopener" class="inline-block mt-2 text-sm text-blue-800 underline">Indicazioni</a>
       </li>
     </template>
@@ -117,7 +121,12 @@
           </td>
           <td class="px-3 py-2" x-text="p.comune_nome"></td>
           <td class="px-3 py-2" x-text="p.indirizzo"></td>
-          <td class="px-3 py-2" x-text="p.telefono || '—'"></td>
+          <td class="px-3 py-2">
+            <span x-show="!p.telefono">—</span>
+            <template x-for="(pezzo, i) in pezziContatto(p.telefono)" :key="i">
+              <span><a x-show="pezzo.tipo !== 'testo'" :href="pezzo.href" class="text-blue-800 underline whitespace-nowrap" x-text="pezzo.testo"></a><span x-show="pezzo.tipo === 'testo'" x-text="pezzo.testo"></span> </span>
+            </template>
+          </td>
           <td class="px-3 py-2">
             <a :href="linkIndicazioni(p)" target="_blank" rel="noopener" class="text-blue-800 underline">Indicazioni</a>
           </td>
@@ -127,7 +136,7 @@
   </table>
 </main>
 
-<script src="/assets/js/app.js"></script>
+<script src="<?= h(asset('/assets/js/app.js')) ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </body>
 </html>

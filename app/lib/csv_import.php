@@ -94,6 +94,20 @@ function anteprimaImportCsv(string $percorsoFile, array $utente): array
         if ($dati['indirizzo'] === '') {
             $errori[] = 'L\'indirizzo è obbligatorio.';
         }
+        // Stesse regole del form manuale: il sito diventa un link sulla mappa pubblica, quindi solo http/https.
+        $sitoWeb = trim($dati['sito_web'] ?? '');
+        if ($sitoWeb !== '') {
+            if (!preg_match('#^https?://#i', $sitoWeb)) {
+                $sitoWeb = 'https://' . ltrim($sitoWeb, '/');
+            }
+            if (!filter_var($sitoWeb, FILTER_VALIDATE_URL)) {
+                $errori[] = 'Sito web non valido.';
+            }
+            $dati['sito_web'] = $sitoWeb;
+        }
+        if (($dati['email'] ?? '') !== '' && !filter_var($dati['email'], FILTER_VALIDATE_EMAIL)) {
+            $errori[] = 'Email non valida.';
+        }
 
         $lat = $dati['lat'] !== '' ? (float) str_replace(',', '.', $dati['lat']) : null;
         $lng = $dati['lng'] !== '' ? (float) str_replace(',', '.', $dati['lng']) : null;

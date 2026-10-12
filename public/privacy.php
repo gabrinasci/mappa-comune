@@ -1,15 +1,11 @@
+<?php require_once __DIR__ . '/../app/lib/helpers.php'; ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy policy — Punti in comune</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] }, colors: { navy: '#00194B', primary: '#0066CC' } } } };
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<?= stiliComuni() ?>
 </head>
 <body class="bg-white text-gray-900 font-sans">
 <main class="max-w-3xl mx-auto px-4 py-10">

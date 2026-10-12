@@ -3,3 +3,4 @@
 /dati_base
 *.log
 .DS_Store
+/tests/*.png

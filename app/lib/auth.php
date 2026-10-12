@@ -11,6 +11,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Dopo questa inattività la sessione admin scade e serve un nuovo accesso.
+const DURATA_INATTIVITA_SESSIONE = 2 * 60 * 60;
+
 function tentativiFalliti(string $email): int
 {
     $stmt = db()->prepare("SELECT COUNT(*) FROM log_accessi WHERE email_tentativo = ? AND esito = 'fallito' AND creato_il > (NOW() - INTERVAL 15 MINUTE)");
@@ -18,9 +21,17 @@ function tentativiFalliti(string $email): int
     return (int) $stmt->fetchColumn();
 }
 
+/** Tentativi falliti dallo stesso IP su qualunque email: frena chi prova molti account diversi. */
+function tentativiFallitiDaIp(): int
+{
+    $stmt = db()->prepare("SELECT COUNT(*) FROM log_accessi WHERE ip = ? AND esito = 'fallito' AND creato_il > (NOW() - INTERVAL 15 MINUTE)");
+    $stmt->execute([$_SERVER['REMOTE_ADDR'] ?? '']);
+    return (int) $stmt->fetchColumn();
+}
+
 function tentaLogin(string $email, string $password): bool
 {
-    if (tentativiFalliti($email) >= 5) {
+    if (tentativiFalliti($email) >= 5 || tentativiFallitiDaIp() >= 20) {
         return false;
     }
     $stmt = db()->prepare('SELECT * FROM utenti WHERE email = ? AND attivo = 1');
@@ -34,6 +45,7 @@ function tentaLogin(string $email, string $password): bool
 
     session_regenerate_id(true);
     $_SESSION['utente_id'] = $utente['id'];
+    $_SESSION['ultima_attivita'] = time();
     db()->prepare('UPDATE utenti SET ultimo_accesso = NOW() WHERE id = ?')->execute([$utente['id']]);
     registraAccesso($utente['id'], $email, 'successo');
     return true;
@@ -58,6 +70,14 @@ function generaTokenReset(int $utenteId): string
     $stmt = db()->prepare('UPDATE utenti SET reset_token_hash = ?, reset_token_scadenza = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE id = ?');
     $stmt->execute([hash('sha256', $token), $utenteId]);
     return $token;
+}
+
+/** Vero se è già stato generato un link di reset negli ultimi 5 minuti (il link vale 1 ora). */
+function resetRichiestoDiRecente(array $utente): bool
+{
+    $stmt = db()->prepare('SELECT COUNT(*) FROM utenti WHERE id = ? AND reset_token_scadenza > (NOW() + INTERVAL 55 MINUTE)');
+    $stmt->execute([$utente['id']]);
+    return (int) $stmt->fetchColumn() > 0;
 }
 
 function trovaUtentePerEmail(string $email): ?array
@@ -99,6 +119,13 @@ function utenteCorrente(): ?array
     if (empty($_SESSION['utente_id'])) {
         return null;
     }
+    if (time() - ($_SESSION['ultima_attivita'] ?? 0) > DURATA_INATTIVITA_SESSIONE) {
+        // Si svuota la sessione senza distruggerla: la pagina corrente (es. il login) può ancora salvarci il token CSRF.
+        $_SESSION = [];
+        session_regenerate_id(true);
+        return null;
+    }
+    $_SESSION['ultima_attivita'] = time();
     $stmt = db()->prepare('SELECT * FROM utenti WHERE id = ? AND attivo = 1');
     $stmt->execute([$_SESSION['utente_id']]);
     $utente = $stmt->fetch() ?: null;

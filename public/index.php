@@ -2,28 +2,24 @@
 require_once __DIR__ . '/../app/config/config.php';
 require_once __DIR__ . '/../app/lib/helpers.php';
 require_once __DIR__ . '/../app/lib/avvisi.php';
+require_once __DIR__ . '/../app/lib/mappa.php';
 
 $avvisi = avvisiAttivi();
+$configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojson')];
 ?>
 <!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mappa Servizi Comunali</title>
+<title>Punti in comune — Mappa dei servizi comunali</title>
+<meta name="description" content="Mappa dei servizi dei comuni di Farra di Soligo, Pieve di Soligo, Refrontolo e Sernaglia della Battaglia: uffici, sportelli, scuole, biblioteche e servizi sociali e sanitari.">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-<link rel="icon" href="/assets/img/punti-in-comune_logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/css/style.css">
+<?= stiliComuni() ?>
 </head>
-<body class="h-screen flex flex-col bg-white text-gray-900" x-data="mappaServizi()" x-init="init($refs.mappa)">
+<body class="h-screen h-dvh flex flex-col bg-white text-gray-900" x-data="mappaServizi()">
 
 <a href="#contenuto" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-blue-800 focus:px-4 focus:py-2">Vai al contenuto</a>
 
@@ -71,6 +67,11 @@ $avvisi = avvisiAttivi();
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
     </button>
     </div>
+
+    <a href="/informazioni.php" class="hidden md:flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-2">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      Come funziona
+    </a>
 
     <!-- Filtri: pannello laterale (desktop) o foglio dal basso (mobile) -->
     <button type="button" @click="filtriAperti = true" :aria-expanded="filtriAperti" aria-controls="pannello-filtri"
@@ -136,7 +137,7 @@ $avvisi = avvisiAttivi();
 
 <main id="contenuto" class="flex-1 flex overflow-hidden relative">
   <div class="relative flex-1">
-    <div x-ref="mappa" id="mappa" class="absolute inset-0" role="application" aria-label="Mappa dei servizi comunali"></div>
+    <div x-ref="mappa" id="mappa" class="absolute inset-0 z-0" role="application" aria-label="Mappa dei servizi comunali"></div>
 
     <p x-show="statoGeo" x-text="statoGeo" role="status" class="absolute top-3 left-3 bg-white shadow rounded px-3 py-2 text-sm text-gray-700"></p>
     <p x-show="caricamentoFallito" class="absolute inset-x-0 top-0 bg-red-100 text-red-800 text-sm px-4 py-2">
@@ -212,16 +213,37 @@ $avvisi = avvisiAttivi();
 
         <p class="mt-4 text-sm whitespace-pre-line" x-text="selezionato.descrizione"></p>
 
-        <div class="mt-4 text-sm space-y-1">
-          <p x-show="selezionato.telefono">Tel. <span x-text="selezionato.telefono"></span></p>
-          <p x-show="selezionato.email">Email: <a class="text-blue-800 underline" :href="'mailto:' + selezionato.email" x-text="selezionato.email"></a></p>
+        <div class="mt-4 text-sm space-y-2">
+          <div x-show="selezionato?.telefono" class="flex items-start gap-2.5">
+            <span class="shrink-0 mt-0.5 text-primary"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.12.37 2.33.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z"/></svg></span>
+            <p class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span class="sr-only">Telefono:</span>
+              <template x-for="(pezzo, i) in pezziContatto(selezionato?.telefono)" :key="i">
+                <span>
+                  <a x-show="pezzo.tipo === 'tel'" :href="pezzo.href" :aria-label="'Chiama il numero ' + pezzo.testo" class="font-semibold text-primary underline underline-offset-2 hover:text-primary-dark whitespace-nowrap" x-text="pezzo.testo"></a>
+                  <a x-show="pezzo.tipo === 'email'" :href="pezzo.href" class="text-primary underline underline-offset-2 hover:text-primary-dark break-all" x-text="pezzo.testo"></a>
+                  <span x-show="pezzo.tipo === 'testo'" class="text-gray-700" x-text="pezzo.testo"></span>
+                </span>
+              </template>
+            </p>
+          </div>
+          <div x-show="selezionato?.email" class="flex items-start gap-2.5">
+            <span class="shrink-0 mt-0.5 text-primary"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <p><span class="sr-only">Email:</span> <a class="text-primary underline underline-offset-2 hover:text-primary-dark break-all" :href="'mailto:' + selezionato?.email" x-text="selezionato?.email"></a></p>
+          </div>
         </div>
 
         <div class="mt-5 space-y-2 pb-4">
           <a :href="linkIndicazioni(selezionato)" target="_blank" rel="noopener"
-             class="block text-center bg-primary text-white hover:bg-primary-dark rounded-md py-2 text-sm font-medium">Indicazioni stradali</a>
-          <a x-show="selezionato.sito_web" :href="selezionato.sito_web" target="_blank" rel="noopener"
-             class="block text-center border rounded-md py-2 text-sm font-medium text-gray-700">Sito del servizio</a>
+             class="block text-center bg-primary text-white hover:bg-primary-dark rounded-md py-2 text-sm font-medium">Indicazioni stradali<span class="sr-only"> (si apre in una nuova scheda)</span></a>
+          <template x-for="pezzo in pezziContatto(selezionato?.telefono).filter((p) => p.tipo === 'tel').slice(0, 1)" :key="pezzo.href">
+            <a :href="pezzo.href" class="flex items-center justify-center gap-2 border border-primary text-primary hover:bg-blue-50 rounded-md py-2 text-sm font-medium">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.12.37 2.33.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z"/></svg>
+              <span x-text="'Chiama ' + pezzo.testo"></span>
+            </a>
+          </template>
+          <a x-show="linkSicuro(selezionato?.sito_web)" :href="linkSicuro(selezionato?.sito_web)" target="_blank" rel="noopener"
+             class="block text-center border rounded-md py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Sito del servizio<span class="sr-only"> (si apre in una nuova scheda)</span></a>
         </div>
       </div>
     </template>
@@ -230,8 +252,10 @@ $avvisi = avvisiAttivi();
 
 <footer class="border-t bg-white text-xs text-gray-600">
   <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 sm:px-4">
-    <span>Punti in comune · Farra di Soligo, Pieve di Soligo, Refrontolo, Sernaglia della Battaglia</span>
-    <nav aria-label="Informazioni legali" class="flex gap-4">
+    <span class="hidden lg:inline">Punti in comune · Farra di Soligo, Pieve di Soligo, Refrontolo, Sernaglia della Battaglia</span>
+    <nav aria-label="Link utili" class="flex flex-wrap gap-x-4 gap-y-1">
+      <a href="/informazioni.php" class="underline hover:text-primary font-semibold">Il servizio</a>
+      <a href="/lista.php" class="underline hover:text-primary">Elenco dei servizi</a>
       <a href="/privacy.php" class="underline hover:text-primary">Privacy policy</a>
       <a href="/cookie.php" class="underline hover:text-primary">Cookie policy</a>
       <a href="/accessibilita.php" class="underline hover:text-primary">Accessibilità</a>
@@ -281,12 +305,20 @@ $avvisi = avvisiAttivi();
           </div>
         </fieldset>
 
-        <fieldset x-show="confiniDisponibili">
-          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Opzioni</legend>
-          <label class="flex items-center gap-3 text-sm cursor-pointer">
-            <input type="checkbox" checked @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
-            Mostra confini comunali
-          </label>
+        <fieldset>
+          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Opzioni della mappa</legend>
+          <div class="space-y-3">
+            <label x-show="semplificazioneDisponibile" class="flex items-start gap-3 text-sm cursor-pointer">
+              <input type="checkbox" :checked="mappaSemplificata" @change="impostaMappaSemplificata($event.target.checked)" class="mt-0.5 w-4 h-4 rounded border-gray-400 text-primary">
+              <span>Mappa semplificata
+                <span class="block text-xs text-gray-600">Nasconde negozi, locali e altri punti di interesse dello sfondo: restano solo i servizi comunali.</span>
+              </span>
+            </label>
+            <label x-show="confiniDisponibili" class="flex items-center gap-3 text-sm cursor-pointer">
+              <input type="checkbox" :checked="mostraConfini" @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
+              Mostra confini comunali
+            </label>
+          </div>
         </fieldset>
       </div>
 
@@ -298,7 +330,8 @@ $avvisi = avvisiAttivi();
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-<script src="/assets/js/app.js"></script>
+<script>window.CONFIG_MAPPA = <?= json_encode($configMappa, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES) ?>;</script>
+<script src="<?= h(asset('/assets/js/app.js')) ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </body>
 </html>

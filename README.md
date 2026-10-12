@@ -18,6 +18,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
    - Se esisteva prima del flag "servizio sovracomunale", esegui anche `sql/migrazione_003_sovracomunale.sql`.
    - Se esisteva prima del banner avvisi in home, esegui anche `sql/migrazione_006_avvisi.sql`.
    - Se esisteva prima dell'aggiunta di Refrontolo, esegui anche `sql/migrazione_007_comune_refrontolo.sql`.
+   - Per completare con `https://` i siti web salvati senza protocollo, esegui `sql/migrazione_008_siti_web_https.sql`.
    - Tutte le migrazioni sono da eseguire una tantum e non toccano i dati esistenti.
 4. Punta un server PHP alla cartella `public/` (document root). In locale, ad esempio: `php -S localhost:8000 -t public`.
 5. Apri `/admin/setup.php`: essendo il database senza utenti, mostra il wizard per creare il primo account (superadmin). Dopo la creazione verrai reindirizzato al login.
@@ -29,6 +30,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
 ```
 /public/            document root del webserver (tutto ciò che è raggiungibile da browser)
   index.php          mappa pubblica
+  informazioni.php   pagina "Il servizio": progetto, funzionamento, link ai comuni
   lista.php          vista tabellare/accessibile
   accessibilita.php  dichiarazione di accessibilità (da completare)
   api/punti.php       endpoint JSON pubblico usato dalla mappa
@@ -44,20 +46,43 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
 /resources/tailwind-input.css  sorgente per la build CSS di produzione
 ```
 
-## CSS di produzione (Tailwind)
+## CSS (Tailwind compilato)
 
-In sviluppo le pagine caricano Tailwind da CDN (`cdn.tailwindcss.com`, nessuna installazione richiesta). **Prima di andare in produzione** conviene passare alla build compilata, più leggera e senza dipendere da uno script esterno ad ogni caricamento pagina:
+Le pagine usano il file compilato `public/assets/css/tailwind.css` (colori e font del progetto in `tailwind.config.js`), incluso tramite `stiliComuni()` in `app/lib/helpers.php`. Dopo aver aggiunto o cambiato classi Tailwind nel markup va rigenerato:
+
+```
+npm install          # una volta sola
+npm run build:css    # rigenera public/assets/css/tailwind.css
+```
+
+Il file compilato va committato e caricato insieme al resto (l'hosting non deve avere Node). CSS, JS e GeoJSON sono richiamati con `?v=<data di modifica>` (funzione `asset()`): dopo un aggiornamento i browser scaricano subito la versione nuova.
+
+## Mappa di sfondo
+
+Il superadmin sceglie il fornitore da **Impostazioni mappa**:
+- **Mapbox** (predefinito): richiede un token pubblico `pk.` (facoltativo, altrimenti si usa quello del progetto); gratuito fino a 200.000 tasselli al mese.
+- **OpenStreetMap (OpenFreeMap)**: gratuito e senza chiave, disegnato con MapLibre (caricato solo in questo caso). Se il browser non supporta WebGL si passa da soli ai tasselli OpenStreetMap standard.
+
+Nel pannello Filtri i visitatori possono attivare la **mappa semplificata**, che nasconde negozi e punti di interesse dello sfondo (Mapbox: stile "light"; OpenFreeMap: livelli `poi*` spenti). La scelta resta salvata nel browser. Le mappe CARTO, citate in PROGETTO.md, oggi richiedono una chiave API e non sono più un'alternativa gratuita.
+
+## Test automatici
+
+Due script, da lanciare in locale o contro il sito online dopo ogni pubblicazione (serve Google Chrome installato):
 
 ```
 npm install
-npm run build:css   # genera public/assets/css/tailwind.css
+BASE_URL=http://127.0.0.1:8000 ADMIN_EMAIL=... ADMIN_PASSWORD=... npm run test:e2e
+BASE_URL=http://127.0.0.1:8000 ADMIN_EMAIL=... ADMIN_PASSWORD=... COMUNE_EMAIL=... COMUNE_PASSWORD=... npm run test:sicurezza
 ```
 
-Poi, in ciascun file `.php` che oggi include `<script src="https://cdn.tailwindcss.com"></script>`, sostituirlo con:
-```html
-<link rel="stylesheet" href="/assets/css/tailwind.css">
-```
-Da rifare (`npm run build:css`) ogni volta che si aggiungono nuove classi Tailwind nel markup. Il file compilato va committato/caricato insieme al resto (l'hosting non deve avere Node).
+- `tests/e2e.mjs`: mappa su desktop e mobile (clic sui punti con i filtri aperti, telefoni cliccabili, mappa semplificata, nessun errore JS né scorrimento orizzontale), pagine pubbliche e cambio di fornitore della mappa (ripristinato alla fine).
+- `tests/sicurezza.mjs`: pagine admin senza login, CSRF, input malformati, file sensibili non raggiungibili, XSS e link `javascript:` in punti/avvisi/import CSV, permessi dell'admin di comune sui punti di altri comuni, blocco dopo 5 accessi falliti.
+
+Le credenziali `ADMIN_*` (superadmin) e `COMUNE_*` (admin di un comune) sono facoltative: senza, si eseguono solo i controlli anonimi. Il test del blocco accessi blocca per 15 minuti l'account `COMUNE_*`: usare un account di prova. `CHROME_PATH` permette di indicare un percorso di Chrome diverso da quello predefinito su macOS.
+
+## Pubblicazione (FTP)
+
+Caricare sempre l'intera cartella `public/` e `app/` (tranne `app/config/config.php`, che sul server ha valori propri). Dopo l'aggiornamento, eseguire da phpMyAdmin le migrazioni non ancora applicate (`sql/migrazione_00X_*.sql`, in ordine) e lanciare i test contro l'indirizzo online.
 
 ## Note operative
 

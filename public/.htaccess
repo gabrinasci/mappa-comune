@@ -1,3 +1,30 @@
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
+# L'elenco dei file nelle cartelle è già disattivato dall'hosting (risponde 403).
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # La geolocalizzazione serve solo al pulsante "la mia posizione" del sito stesso.
+  Header always set Permissions-Policy "geolocation=(self), camera=(), microphone=(), payment=()"
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+# Compressione di HTML, CSS, JS, JSON e GeoJSON.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript text/javascript application/json application/geo+json image/svg+xml
+</IfModule>
+
+# I file statici sono richiamati con ?v=<data di modifica>: si possono tenere in cache a lungo,
+# perché quando cambiano cambia anche l'indirizzo.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType application/geo+json "access plus 1 month"
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/geo+json .geojson
+</IfModule>

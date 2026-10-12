@@ -2,12 +2,15 @@
   "name": "mappa-servizi-comunali",
   "private": true,
   "version": "1.0.0",
-  "description": "Build Tailwind CSS per la produzione (Node serve solo in locale/dev, non sull'hosting).",
+  "description": "Build Tailwind CSS e test automatici (Node serve solo in locale/dev, non sull'hosting).",
   "scripts": {
     "build:css": "tailwindcss -i ./resources/tailwind-input.css -o ./public/assets/css/tailwind.css --minify",
-    "watch:css": "tailwindcss -i ./resources/tailwind-input.css -o ./public/assets/css/tailwind.css --watch"
+    "watch:css": "tailwindcss -i ./resources/tailwind-input.css -o ./public/assets/css/tailwind.css --watch",
+    "test:e2e": "node tests/e2e.mjs",
+    "test:sicurezza": "node tests/sicurezza.mjs"
   },
   "devDependencies": {
+    "puppeteer-core": "^23.11.1",
     "tailwindcss": "^3.4.0"
   }
 }

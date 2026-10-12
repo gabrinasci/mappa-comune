@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../../app/config/db.php';
 
 header('Content-Type: application/json; charset=utf-8');
+// Breve cache: le modifiche dall'admin compaiono entro un minuto, ma le visite ravvicinate non rileggono il database.
+header('Cache-Control: public, max-age=60');
 
 $pdo = db();
 

@@ -33,12 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configurazione iniziale — Mappa Servizi</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<?= stiliComuni() ?>
 </head>
 <body class="bg-white min-h-screen flex items-center justify-center">
 <div class="bg-white shadow-sm rounded-lg p-8 w-full max-w-md">

@@ -3,6 +3,8 @@ require_once __DIR__ . '/../../app/lib/auth.php';
 require_once __DIR__ . '/../../app/lib/helpers.php';
 require_once __DIR__ . '/../../app/lib/csv_import.php';
 
+const DIMENSIONE_MAX_CSV = 2 * 1024 * 1024;
+
 $utente = richiediLogin();
 $anteprima = null;
 $risultatoFinale = null;
@@ -12,6 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $azione = $_POST['azione'] ?? '';
 
     if ($azione === 'carica' && !empty($_FILES['csv']['tmp_name'])) {
+        if (!is_uploaded_file($_FILES['csv']['tmp_name']) || $_FILES['csv']['size'] > DIMENSIONE_MAX_CSV) {
+            flash('errore', 'File non valido o troppo grande (massimo 2 MB).');
+            redirect('/admin/import.php');
+        }
         $risultato = anteprimaImportCsv($_FILES['csv']['tmp_name'], $utente);
         if ($risultato['errore_generale']) {
             flash('errore', $risultato['errore_generale']);
@@ -19,6 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $_SESSION['import_preview'] = $risultato['righe'];
         $_SESSION['import_nome_file'] = $_FILES['csv']['name'];
+        redirect('/admin/import.php');
+    }
+
+    if ($azione === 'annulla') {
+        unset($_SESSION['import_preview'], $_SESSION['import_nome_file']);
         redirect('/admin/import.php');
     }
 
@@ -53,12 +64,7 @@ if (!$risultatoFinale && !empty($_SESSION['import_preview'])) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Importa CSV — Mappa Servizi</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Titillium Web"', 'Arial', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] }, colors: { navy: '#00194B', primary: '#0066CC', 'primary-dark': '#003399' } } } };
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<?= stiliComuni() ?>
 </head>
 <body class="bg-white text-gray-900 min-h-screen">
 <?php require __DIR__ . '/_nav.php'; ?>
@@ -120,7 +126,10 @@ if (!$risultatoFinale && !empty($_SESSION['import_preview'])) {
           </tbody>
         </table>
       </div>
-      <button type="submit" class="mt-4 bg-primary text-white rounded px-4 py-2 text-sm font-medium">Conferma import</button>
+      <div class="mt-4 flex gap-2">
+        <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">Conferma import</button>
+        <button type="submit" name="azione" value="annulla" formnovalidate class="border rounded px-4 py-2 text-sm font-medium">Annulla</button>
+      </div>
       <a href="/admin/import.php" class="ml-2 text-sm text-gray-600 underline">Annulla</a>
     </form>
 
