@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../app/lib/auth.php';
 require_once __DIR__ . '/../../app/lib/helpers.php';
+require_once __DIR__ . '/../../app/lib/foto.php';
 
 $utente = richiediLogin();
 $ambitoComuneId = comuneAmbito($utente);
@@ -24,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['azione'] ?? '') === 'elimina') {
         $id = (int) $_POST['id'];
         if (puntoInAmbito($pdo, $id, $ambitoComuneId)) {
+            eliminaFotoDelPunto($id);
             $pdo->prepare('DELETE FROM punti_servizio WHERE id = ?')->execute([$id]);
             flash('successo', 'Punto servizio eliminato.');
         }
@@ -86,6 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        if (empty($_POST['id'])) {
+            flash('successo', 'Punto servizio creato. Ora puoi aggiungere le foto.');
+            redirect('/admin/punti.php?azione=modifica&id=' . $id . '#foto');
+        }
         flash('successo', 'Punto servizio salvato.');
         redirect('/admin/punti.php');
     }
@@ -108,6 +114,7 @@ if ($azione === 'modifica' && !empty($_GET['id'])) {
     }
 }
 $mostraForm = $azione === 'nuovo' || $puntoModifica;
+$fotoModifica = $puntoModifica ? fotoDelPunto((int) $puntoModifica['id']) : [];
 
 $condizione = $ambitoComuneId !== null ? 'WHERE p.comune_id = ?' : '';
 $parametri = $ambitoComuneId !== null ? [$ambitoComuneId] : [];
@@ -135,6 +142,9 @@ $elenco = $stmt->fetchAll();
   <?php endif; ?>
   <?php if (!empty($erroriForm)): ?>
     <p class="bg-red-100 text-red-800 text-sm px-3 py-2 rounded mb-4"><?= h(implode(' ', $erroriForm)) ?></p>
+  <?php endif; ?>
+  <?php if ($msg = flash('errore')): ?>
+    <p class="bg-red-100 text-red-800 text-sm px-3 py-2 rounded mb-4"><?= h($msg) ?></p>
   <?php endif; ?>
 
   <?php if ($mostraForm): ?>
@@ -237,6 +247,73 @@ $elenco = $stmt->fetchAll();
         <a href="/admin/punti.php" class="border rounded px-4 py-2 text-sm font-medium">Annulla</a>
       </div>
     </form>
+
+    <section id="foto" class="mt-8 bg-white rounded-lg shadow-sm p-5 max-w-2xl" aria-labelledby="titolo-foto">
+      <h2 id="titolo-foto" class="text-lg font-semibold">Foto<?= $puntoModifica ? ' (' . count($fotoModifica) . ' di ' . MAX_FOTO_PER_PUNTO . ')' : '' ?></h2>
+      <?php if (!$puntoModifica): ?>
+        <p class="mt-2 text-sm text-gray-600">Salva il punto per poter aggiungere le foto.</p>
+      <?php else: ?>
+        <p class="mt-1 text-sm text-gray-600">Compaiono nel dettaglio sulla mappa; la prima è la copertina. Non pubblicare foto con persone riconoscibili senza il loro consenso.</p>
+
+        <?php if ($fotoModifica): ?>
+          <ul class="mt-4 space-y-3">
+            <?php foreach ($fotoModifica as $i => $f): ?>
+              <li class="flex flex-col sm:flex-row gap-3 border rounded-lg p-3">
+                <img src="<?= h(URL_FOTO . '/' . $f['file_medio']) ?>" alt="<?= h($f['alt_testo'] ?? '') ?>" loading="lazy" class="w-full sm:w-40 h-28 object-cover rounded bg-gray-100">
+                <div class="flex-1 min-w-0 space-y-2">
+                  <?php if ($i === 0): ?><span class="inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-primary">Copertina</span><?php endif; ?>
+                  <form method="post" action="/admin/foto_punto.php" class="flex gap-2">
+                    <?= csrfCampo() ?>
+                    <input type="hidden" name="punto_id" value="<?= (int) $puntoModifica['id'] ?>">
+                    <input type="hidden" name="foto_id" value="<?= (int) $f['id'] ?>">
+                    <label class="sr-only" for="alt-<?= (int) $f['id'] ?>">Descrizione della foto</label>
+                    <input id="alt-<?= (int) $f['id'] ?>" name="alt_testo" maxlength="255" value="<?= h($f['alt_testo'] ?? '') ?>" placeholder="Descrizione (es. Ingresso del municipio)" class="flex-1 min-w-0 border rounded px-2 py-1 text-sm">
+                    <button type="submit" name="azione" value="alt" class="border rounded px-3 py-1 text-sm">Salva</button>
+                  </form>
+                  <div class="flex gap-3 text-sm">
+                    <?php if ($i > 0): ?>
+                      <form method="post" action="/admin/foto_punto.php">
+                        <?= csrfCampo() ?>
+                        <input type="hidden" name="punto_id" value="<?= (int) $puntoModifica['id'] ?>">
+                        <input type="hidden" name="foto_id" value="<?= (int) $f['id'] ?>">
+                        <button type="submit" name="azione" value="copertina" class="text-blue-800 underline">Usa come copertina</button>
+                      </form>
+                    <?php endif; ?>
+                    <form method="post" action="/admin/foto_punto.php" onsubmit="return confirm('Eliminare questa foto?');">
+                      <?= csrfCampo() ?>
+                      <input type="hidden" name="punto_id" value="<?= (int) $puntoModifica['id'] ?>">
+                      <input type="hidden" name="foto_id" value="<?= (int) $f['id'] ?>">
+                      <button type="submit" name="azione" value="elimina" class="text-red-700 underline">Elimina</button>
+                    </form>
+                  </div>
+                </div>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+
+        <?php if (count($fotoModifica) < MAX_FOTO_PER_PUNTO): ?>
+          <form method="post" action="/admin/foto_punto.php?punto_id=<?= (int) $puntoModifica['id'] ?>" enctype="multipart/form-data" class="mt-5 space-y-3 border-t pt-4" id="form-foto">
+            <?= csrfCampo() ?>
+            <input type="hidden" name="punto_id" value="<?= (int) $puntoModifica['id'] ?>">
+            <input type="hidden" name="azione" value="carica">
+            <div>
+              <label for="campo-foto" class="block text-sm font-medium mb-1">Aggiungi foto</label>
+              <input id="campo-foto" name="foto[]" type="file" multiple required accept="image/jpeg,image/png,image/webp" class="block w-full text-sm">
+              <p class="text-xs text-gray-500 mt-1">JPEG, PNG o WebP, fino a 6 per volta. Le foto vengono ridotte automaticamente prima dell'invio e i dati di posizione dello scatto vengono eliminati.</p>
+            </div>
+            <div>
+              <label for="alt-nuove" class="block text-sm font-medium mb-1">Descrizione (facoltativa)</label>
+              <input id="alt-nuove" name="alt_testo" maxlength="255" placeholder="Es. Ingresso dell'ufficio anagrafe" class="w-full border rounded px-3 py-2 text-sm">
+              <p class="text-xs text-gray-500 mt-1">Letta da chi usa un lettore di schermo; vale per tutte le foto di questo invio.</p>
+            </div>
+            <button type="submit" class="bg-primary text-white rounded px-4 py-2 text-sm font-medium">Carica foto</button>
+            <p id="stato-foto" class="text-sm text-gray-600" role="status"></p>
+          </form>
+          <script src="<?= h(asset('/assets/js/admin-foto.js')) ?>"></script>
+        <?php endif; ?>
+      <?php endif; ?>
+    </section>
 
   <?php else: ?>
     <div class="flex items-center justify-between mb-4">

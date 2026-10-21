@@ -1,0 +1,16 @@
+# Cartella delle foto caricate dal pannello admin: qui devono esserci solo immagini.
+# Anche se un file con estensione da script finisse qui, il server non lo eseguirebbe né lo servirebbe.
+<FilesMatch "(?i)\.(php\d?|phtml|phar|pl|py|cgi|sh|shtml|asp|aspx|jsp|htaccess|html?|svg)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+</IfModule>

@@ -84,6 +84,23 @@ CREATE TABLE orari_apertura (
   FOREIGN KEY (punto_id) REFERENCES punti_servizio(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Foto dei punti (galleria nel dettaglio). I file stanno in public/uploads/punti/<punto_id>/,
+-- ricodificati in WebP in due misure (grande e media) senza dati EXIF.
+CREATE TABLE foto_punti (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  punto_id INT NOT NULL,
+  file_grande VARCHAR(255) NOT NULL,
+  file_medio VARCHAR(255) NOT NULL,
+  larghezza INT NOT NULL,
+  altezza INT NOT NULL,
+  alt_testo VARCHAR(255) NULL,
+  ordine INT NOT NULL DEFAULT 0,
+  creato_da INT NULL,
+  creato_il DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (punto_id) REFERENCES punti_servizio(id) ON DELETE CASCADE,
+  FOREIGN KEY (creato_da) REFERENCES utenti(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Avvisi brevi (cambi orario, novità) mostrati a scorrimento nel banner della home.
 -- Visibili solo se attivi e, quando indicate, entro le date di inizio/fine.
 CREATE TABLE avvisi (

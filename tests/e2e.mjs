@@ -212,6 +212,62 @@ if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
     }
     await home.close();
 
+    // Foto: caricamento dalla scheda del punto, copertina e galleria sulla mappa, eliminazione.
+    const puntoFoto = await page.evaluate(async () => (await (await fetch('/api/punti.php')).json()).punti.find((p) => !p.foto.length));
+    if (puntoFoto) {
+        const immagini = await page.evaluate(() => Promise.all([['#0066CC', 2400, 1600], ['#0BB14B', 1200, 1800]].map(([colore, l, a], i) => {
+            const c = document.createElement('canvas'); c.width = l; c.height = a;
+            const g = c.getContext('2d'); g.fillStyle = colore; g.fillRect(0, 0, l, a);
+            g.fillStyle = '#fff'; g.font = 'bold 200px sans-serif'; g.fillText('Foto ' + (i + 1), 100, a / 2);
+            return new Promise((r) => c.toBlob((b) => { const fr = new FileReader(); fr.onload = () => r(fr.result.split(',')[1]); fr.readAsDataURL(b); }, 'image/png'));
+        })));
+        const fs = await import('node:fs');
+        const os = await import('node:os');
+        const file = immagini.map((b64, i) => { const f = `${os.tmpdir()}/punti-test-${i}.png`; fs.writeFileSync(f, Buffer.from(b64, 'base64')); return f; });
+        await page.goto(`${BASE}/admin/punti.php?azione=modifica&id=${puntoFoto.id}`, { waitUntil: 'networkidle2' });
+        await (await page.$('#campo-foto')).uploadFile(...file);
+        await page.type('#alt-nuove', 'Foto di prova automatica');
+        await Promise.all([page.waitForNavigation({ timeout: 60000 }), page.click('#form-foto button[type=submit]')]);
+        const caricate = await page.$$eval('#foto li img', (imgs) => imgs.length);
+        verifica(caricate === 2, 'Foto: 2 foto caricate dalla scheda del punto', `${caricate}`);
+
+        const dati = await page.evaluate(async (id) => (await (await fetch('/api/punti.php?x=' + Date.now())).json()).punti.find((p) => p.id === id).foto, puntoFoto.id);
+        verifica(dati.length === 2 && dati.every((f) => /\.(webp|jpg)$/.test(f.grande) && f.larghezza <= 1600 && f.altezza <= 1600), 'Foto: ricodificate e ridotte (lato massimo 1600 px)', JSON.stringify(dati.map((f) => [f.larghezza, f.altezza])));
+
+        for (const [larghezza, mobile] of [[1280, false], [390, true]]) {
+            const home = await apri('/index.php', { larghezza, mobile });
+            await home.evaluate((id) => { const d = Alpine.$data(document.body); d.seleziona(d.punti.find((p) => p.id === id)); }, puntoFoto.id);
+            await attendi(1200);
+            const copertina = await home.evaluate(() => { const img = document.querySelector('main aside button img'); return img && img.complete && img.naturalWidth > 0; });
+            verifica(copertina, `Foto @${larghezza}px: copertina visibile nel dettaglio`);
+            await home.click('main aside button[aria-label^="Apri le foto"]');
+            await attendi(500);
+            const contatore = () => home.$eval('[role=dialog][aria-modal=true] p span', (s) => s.textContent);
+            const prima = await contatore();
+            await home.keyboard.press('ArrowRight');
+            await attendi(300);
+            const dopo = await contatore();
+            verifica(prima === '1 / 2' && dopo === '2 / 2', `Foto @${larghezza}px: galleria aperta e navigabile da tastiera`, `${prima} → ${dopo}`);
+            const fotoGrande = await home.evaluate(() => { const img = document.querySelector('[role=dialog][aria-modal=true] img'); return img.complete && img.naturalWidth > 0 && img.alt === 'Foto di prova automatica'; });
+            verifica(fotoGrande, `Foto @${larghezza}px: immagine grande caricata con descrizione`);
+            await home.keyboard.press('Escape');
+            await attendi(400);
+            const chiusa = await home.$eval('[role=dialog][aria-modal=true]', (el) => getComputedStyle(el).display === 'none');
+            verifica(chiusa, `Foto @${larghezza}px: Esc chiude la galleria`);
+            verifica(home.erroriJs.length === 0, `Foto @${larghezza}px: nessun errore JavaScript`, home.erroriJs.join(' | '));
+            await home.close();
+        }
+
+        // Pulizia: elimina le foto di prova.
+        await page.goto(`${BASE}/admin/punti.php?azione=modifica&id=${puntoFoto.id}`, { waitUntil: 'networkidle2' });
+        page.on('dialog', (d) => d.accept());
+        while (await page.$('#foto button[value=elimina]')) {
+            await Promise.all([page.waitForNavigation(), page.click('#foto button[value=elimina]')]);
+        }
+        verifica(!(await page.$('#foto li img')), 'Foto di prova eliminate');
+        file.forEach((f) => fs.unlinkSync(f));
+    }
+
     // Ripristino della configurazione iniziale.
     await page.goto(BASE + '/admin/impostazioni_mappa.php', { waitUntil: 'networkidle2' });
     await page.click(`input[value=${iniziale}]`);

@@ -4,7 +4,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
 
 ## Requisiti
 
-- PHP 8.1+ con estensioni `pdo_mysql` abilitata (di serie in quasi tutti gli hosting condivisi)
+- PHP 8.1+ con estensioni `pdo_mysql` e `gd` (di serie in quasi tutti gli hosting condivisi; `gd` serve per le foto dei punti)
 - MySQL 5.7+/MariaDB equivalente
 - Per la build di produzione del CSS (facoltativa, solo in locale): Node.js 18+
 
@@ -19,6 +19,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
    - Se esisteva prima del banner avvisi in home, esegui anche `sql/migrazione_006_avvisi.sql`.
    - Se esisteva prima dell'aggiunta di Refrontolo, esegui anche `sql/migrazione_007_comune_refrontolo.sql`.
    - Per completare con `https://` i siti web salvati senza protocollo, esegui `sql/migrazione_008_siti_web_https.sql`.
+   - Per le foto dei punti, esegui `sql/migrazione_009_foto_punti.sql`.
    - Tutte le migrazioni sono da eseguire una tantum e non toccano i dati esistenti.
 4. Punta un server PHP alla cartella `public/` (document root). In locale, ad esempio: `php -S localhost:8000 -t public`.
 5. Apri `/admin/setup.php`: essendo il database senza utenti, mostra il wizard per creare il primo account (superadmin). Dopo la creazione verrai reindirizzato al login.
@@ -35,6 +36,7 @@ Vedi [PROGETTO.md](PROGETTO.md) per la documentazione completa di scelte tecnich
   accessibilita.php  dichiarazione di accessibilità (da completare)
   api/punti.php       endpoint JSON pubblico usato dalla mappa
   admin/              pannello di gestione (login richiesto)
+  uploads/punti/      foto dei punti caricate dal pannello (scrivibile da PHP, esclusa da git)
   assets/             CSS/JS statici
 /app/
   config/             connessione DB e configurazione (config.php escluso da git)
@@ -80,9 +82,17 @@ BASE_URL=http://127.0.0.1:8000 ADMIN_EMAIL=... ADMIN_PASSWORD=... COMUNE_EMAIL=.
 
 Le credenziali `ADMIN_*` (superadmin) e `COMUNE_*` (admin di un comune) sono facoltative: senza, si eseguono solo i controlli anonimi. Il test del blocco accessi blocca per 15 minuti l'account `COMUNE_*`: usare un account di prova. `CHROME_PATH` permette di indicare un percorso di Chrome diverso da quello predefinito su macOS.
 
+## Foto dei punti
+
+Dalla scheda di un punto (Punti servizio → Modifica → sezione Foto) si caricano fino a 12 foto, con descrizione per i lettori di schermo; la prima è la copertina. Sulla mappa compaiono in cima al dettaglio, con miniature e galleria a schermo intero, e in miniatura nell'elenco laterale.
+
+- Prima dell'invio il browser riduce le foto a 2000 px (le foto da telefono supererebbero i limiti di caricamento dell'hosting).
+- Il server accetta solo JPEG, PNG e WebP, li verifica e li ricodifica in WebP (1600 e 800 px): restano solo immagini, raddrizzate secondo l'orientamento dello scatto e senza dati EXIF (niente posizione GPS).
+- I file stanno in `public/uploads/punti/<id punto>/`; `public/uploads/.htaccess` impedisce che vi venga eseguito o servito qualcosa che non sia un'immagine. Eliminando un punto si eliminano anche le sue foto.
+
 ## Pubblicazione (FTP)
 
-Caricare sempre l'intera cartella `public/` e `app/` (tranne `app/config/config.php`, che sul server ha valori propri). Dopo l'aggiornamento, eseguire da phpMyAdmin le migrazioni non ancora applicate (`sql/migrazione_00X_*.sql`, in ordine) e lanciare i test contro l'indirizzo online.
+Caricare sempre l'intera cartella `public/` e `app/` (tranne `app/config/config.php`, che sul server ha valori propri). **Non caricare né cancellare `public/uploads/punti/`**: sul server contiene le foto inserite dai comuni, in locale solo quelle di prova. La cartella `public/uploads/` deve essere scrivibile da PHP (permessi 755, di norma già corretti con l'utente FTP dell'hosting). Dopo l'aggiornamento, eseguire da phpMyAdmin le migrazioni non ancora applicate (`sql/migrazione_00X_*.sql`, in ordine) e lanciare i test contro l'indirizzo online.
 
 ## Note operative
 

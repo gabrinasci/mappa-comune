@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/../../app/config/db.php';
+require_once __DIR__ . '/../../app/lib/foto.php';
 
 header('Content-Type: application/json; charset=utf-8');
-// Breve cache: le modifiche dall'admin compaiono entro un minuto, ma le visite ravvicinate non rileggono il database.
-header('Cache-Control: public, max-age=60');
+// Il browser riverifica sempre (le modifiche dall'admin si vedono subito), ma se i dati non sono
+// cambiati riceve una risposta vuota (304) invece di riscaricare tutto.
+header('Cache-Control: no-cache');
 
 $pdo = db();
 
@@ -32,16 +34,27 @@ foreach ($pdo->query('SELECT punto_id, giorno_settimana, apertura, chiusura, chi
     ];
 }
 
+$fotoPerPunto = fotoPerPunto();
+
 foreach ($punti as &$punto) {
     $punto['lat'] = (float) $punto['lat'];
     $punto['lng'] = (float) $punto['lng'];
     $punto['sovracomunale'] = (bool) $punto['sovracomunale'];
     $punto['orari'] = $orariPerPunto[$punto['id']] ?? [];
+    $punto['foto'] = $fotoPerPunto[$punto['id']] ?? [];
 }
 unset($punto);
 
-echo json_encode([
+$json = json_encode([
     'comuni' => $comuni,
     'categorie' => $categorie,
     'punti' => $punti,
 ], JSON_UNESCAPED_UNICODE);
+$etag = '"' . md5($json) . '"';
+header('ETag: ' . $etag);
+// Con la compressione di Apache l'ETag può tornare con il suffisso -gzip.
+if (str_replace('-gzip', '', trim($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
+    http_response_code(304);
+    exit;
+}
+echo $json;

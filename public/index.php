@@ -166,11 +166,14 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
             <li>
               <button type="button" @click="seleziona(p)" class="w-full text-left flex items-start gap-3 py-3 px-2 hover:bg-gray-100">
                 <span class="shrink-0 mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" :style="`background:${p.colore_hex}`" x-html="svgIconaCategoria(p)"></span>
-                <span class="min-w-0">
+                <span class="min-w-0 flex-1">
                   <span class="block text-sm font-semibold text-navy" x-text="p.nome"></span>
                   <span class="inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full" :style="`background:${p.colore_hex};color:${coloreTesto(p.colore_hex)}`" x-text="p.categoria_nome"></span>
                   <span class="block mt-1 text-xs text-gray-600" x-text="p.comune_nome"></span>
                 </span>
+                <template x-if="p.foto?.length">
+                  <img :src="p.foto[0].media" alt="" loading="lazy" class="shrink-0 w-16 h-16 rounded-md object-cover bg-gray-100">
+                </template>
               </button>
             </li>
           </template>
@@ -179,6 +182,29 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
     </template>
     <template x-if="selezionato">
       <div class="p-5 pt-0 sm:pt-5">
+        <template x-if="fotoCorrenti.length">
+          <div class="-mx-5 sm:-mt-5 mb-4">
+            <button type="button" @click="apriGalleria(0)" class="relative block w-full h-44 sm:h-52 bg-gray-100 overflow-hidden group"
+                    :aria-label="'Apri le foto di ' + selezionato.nome + ' (' + fotoCorrenti.length + ')'">
+              <img :src="fotoCorrenti[0].media" :alt="fotoCorrenti[0].alt || ''" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
+              <span class="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/65 text-white text-xs font-semibold rounded-full px-2.5 py-1">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+                <span x-text="fotoCorrenti.length === 1 ? '1 foto' : fotoCorrenti.length + ' foto'"></span>
+              </span>
+            </button>
+            <template x-if="fotoCorrenti.length > 1">
+              <ul class="flex gap-2 overflow-x-auto px-5 pt-2 pb-1" aria-label="Altre foto">
+                <template x-for="(f, i) in fotoCorrenti.slice(1)" :key="f.media">
+                  <li class="shrink-0">
+                    <button type="button" @click="apriGalleria(i + 1)" class="block w-20 h-16 rounded-md overflow-hidden bg-gray-100 hover:opacity-90" :aria-label="'Apri la foto ' + (i + 2)">
+                      <img :src="f.media" :alt="f.alt || ''" loading="lazy" class="w-full h-full object-cover">
+                    </button>
+                  </li>
+                </template>
+              </ul>
+            </template>
+          </div>
+        </template>
         <div class="flex items-start justify-between gap-2">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="inline-block text-xs font-semibold px-2 py-1 rounded"
@@ -204,7 +230,7 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
               <template x-for="o in (selezionato?.orari ?? [])" :key="o.giorno">
                 <div class="flex justify-between py-0.5">
                   <dt x-text="nomiGiorni[o.giorno]"></dt>
-                  <dd :class="o.chiuso ? 'text-gray-400 italic' : ''" x-text="o.chiuso ? 'Chiuso' : o.apertura + ' - ' + o.chiusura"></dd>
+                  <dd :class="o.chiuso ? 'text-gray-400 italic' : ''" x-text="o.chiuso ? 'Chiuso' : (o.apertura || '').slice(0, 5) + ' - ' + (o.chiusura || '').slice(0, 5)"></dd>
                 </div>
               </template>
             </dl>
@@ -262,6 +288,40 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
     </nav>
   </div>
 </footer>
+
+<!-- Galleria foto a schermo intero -->
+<div x-show="galleria.aperta" x-cloak x-transition.opacity
+     class="fixed inset-0 z-[1300] bg-black/90 flex flex-col" role="dialog" aria-modal="true" :aria-label="'Foto di ' + (selezionato?.nome || '')"
+     @keydown.escape.window="galleria.aperta && chiudiGalleria()"
+     @keydown.arrow-right.window="galleria.aperta && cambiaFoto(1)"
+     @keydown.arrow-left.window="galleria.aperta && cambiaFoto(-1)"
+     @keydown.tab="tieniFocusInGalleria($event)"
+     @touchstart.passive="inizioTocco = $event.changedTouches[0].clientX"
+     @touchend="fineTocco($event)">
+  <div class="flex items-center justify-between gap-4 text-white px-4 py-3">
+    <p class="text-sm min-w-0 truncate" aria-live="polite">
+      <span class="font-semibold" x-text="(galleria.indice + 1) + ' / ' + fotoCorrenti.length"></span>
+      <span class="ml-2 text-white/80" x-text="selezionato?.nome"></span>
+    </p>
+    <button type="button" x-ref="chiudiGalleria" @click="chiudiGalleria()" aria-label="Chiudi le foto" class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="relative flex-1 min-h-0 flex items-center justify-center px-2 sm:px-16 pb-2">
+    <img :src="fotoAttuale?.grande" :alt="fotoAttuale?.alt || ''" class="max-w-full max-h-full object-contain select-none">
+    <template x-if="fotoCorrenti.length > 1">
+      <div>
+        <button type="button" @click="cambiaFoto(-1)" aria-label="Foto precedente" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/30 text-white">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <button type="button" @click="cambiaFoto(1)" aria-label="Foto successiva" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/30 text-white">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </template>
+  </div>
+  <p x-show="fotoAttuale?.alt" x-text="fotoAttuale?.alt" class="text-center text-white/90 text-sm px-4 pb-5"></p>
+</div>
 
 <div x-cloak class="fixed inset-0 z-[1200] pointer-events-none" @keydown.escape.window="filtriAperti = false">
   <aside x-show="filtriAperti" id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"

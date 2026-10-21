@@ -157,6 +157,9 @@ function mappaServizi() {
         filtriAperti: false,
         suggerimentiAperti: false,
         indiceEvidenziato: -1,
+        galleria: { aperta: false, indice: 0 },
+        inizioTocco: null,
+        elementoPrimaDellaGalleria: null,
 
         // Chiamato in automatico da Alpine. Su lista.php non c'è l'elemento della mappa.
         async init() {
@@ -409,12 +412,65 @@ function mappaServizi() {
             // Su desktop il pannello filtri copre la colonna dei dettagli: va chiuso, altrimenti
             // il dettaglio si apre sotto e sembra che il clic sul punto non sia stato preso.
             this.filtriAperti = false;
+            this.galleria.aperta = false;
             this.selezionato = punto;
             if (lf.mappa) lf.mappa.panTo([punto.lat, punto.lng]);
         },
 
         chiudiDettaglio() {
+            this.galleria.aperta = false;
             this.selezionato = null;
+        },
+
+        get fotoCorrenti() {
+            return this.selezionato?.foto || [];
+        },
+
+        get fotoAttuale() {
+            return this.fotoCorrenti[this.galleria.indice] || null;
+        },
+
+        apriGalleria(indice) {
+            this.elementoPrimaDellaGalleria = document.activeElement;
+            this.galleria = { aperta: true, indice };
+            this.precaricaFoto(indice + 1);
+            this.$nextTick(() => this.$refs.chiudiGalleria?.focus());
+        },
+
+        chiudiGalleria() {
+            this.galleria.aperta = false;
+            this.elementoPrimaDellaGalleria?.focus?.();
+        },
+
+        cambiaFoto(delta) {
+            const n = this.fotoCorrenti.length;
+            if (n < 2) return;
+            this.galleria.indice = (this.galleria.indice + delta + n) % n;
+            this.precaricaFoto(this.galleria.indice + delta);
+        },
+
+        precaricaFoto(indice) {
+            const n = this.fotoCorrenti.length;
+            const foto = n ? this.fotoCorrenti[(indice + n) % n] : null;
+            if (foto) new Image().src = foto.grande;
+        },
+
+        // Scorrimento col dito sulla galleria (mobile).
+        fineTocco(evento) {
+            if (this.inizioTocco === null) return;
+            const spostamento = evento.changedTouches[0].clientX - this.inizioTocco;
+            this.inizioTocco = null;
+            if (Math.abs(spostamento) > 50) this.cambiaFoto(spostamento < 0 ? 1 : -1);
+        },
+
+        // Il tasto Tab resta dentro la galleria finché è aperta (finestra modale).
+        tieniFocusInGalleria(evento) {
+            const focusabili = [...evento.currentTarget.querySelectorAll('button')].filter((b) => b.offsetParent !== null);
+            if (!focusabili.length) return;
+            const primo = focusabili[0];
+            const ultimo = focusabili[focusabili.length - 1];
+            if (evento.shiftKey && document.activeElement === primo) { evento.preventDefault(); ultimo.focus(); }
+            else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primo.focus(); }
         },
 
         svgIconaCategoria(punto) {
