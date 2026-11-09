@@ -150,6 +150,21 @@ async function dettaglioVisibile(page) {
             return punti.some(([x, y]) => { const e = document.elementFromPoint(x, y); return e && !aside.contains(e); });
         });
         verifica(!coperto, 'Mobile: il foglio dei dettagli non è coperto da marker o controlli');
+        // Il dettaglio entra da sinistra e lascia sempre visibile la testata.
+        const testataVisibile = () => page.evaluate(() => {
+            const h = document.querySelector('header'); const r = h.getBoundingClientRect();
+            return h.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+        });
+        verifica(await testataVisibile(), 'Mobile: con il dettaglio aperto la testata resta visibile');
+        await page.click('main aside .sticky button');
+        await attendi(500);
+        const fuori = await page.$eval('main aside', (a) => a.getBoundingClientRect().right <= 0);
+        verifica(fuori, 'Mobile: "Torna alla mappa" fa uscire il dettaglio verso sinistra');
+        await page.click('button[aria-controls="pannello-filtri"]');
+        await attendi(120);
+        const inEntrata = await page.$eval('#pannello-filtri', (a) => a.getBoundingClientRect().left < 0);
+        await attendi(500);
+        verifica(inEntrata && await testataVisibile(), 'Mobile: i filtri entrano da sinistra e la testata resta visibile');
     } else {
         verifica(false, 'Mobile: trovato un punto da toccare');
     }

@@ -73,7 +73,7 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
       Come funziona
     </a>
 
-    <!-- Filtri: pannello laterale (desktop) o foglio dal basso (mobile) -->
+    <!-- Pulsante Filtri: apre il pannello (a destra su desktop, da sinistra sopra la mappa su mobile) -->
     <button type="button" @click="filtriAperti = true" :aria-expanded="filtriAperti" aria-controls="pannello-filtri"
             class="relative shrink-0 border rounded-full px-3 sm:px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100">
       <span>Filtri</span>
@@ -148,14 +148,18 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
     </p>
   </div>
 
-  <!-- Sfondo scuro dietro al pannello dettagli su mobile (bottom sheet) -->
-  <div x-show="selezionato" @click="chiudiDettaglio()" class="fixed inset-0 bg-black/30 z-30 sm:hidden"></div>
-
-  <aside :class="selezionato ? 'fixed inset-x-0 bottom-0 z-40 max-h-[75vh] rounded-t-2xl shadow-lg' : 'hidden sm:block'"
-         class="w-full sm:w-96 sm:static sm:max-h-none sm:rounded-none sm:shadow-none shrink-0 border-l bg-white overflow-y-auto"
+  <!-- Dettaglio: su desktop colonna fissa a destra; su mobile pannello che entra da sinistra sopra la mappa,
+       senza coprire testata, avvisi e piè di pagina. -->
+  <aside :class="pannelloAperto ? 'translate-x-0' : '-translate-x-full invisible sm:visible'"
+         @keydown.escape.window="pannelloAperto && !galleria.aperta && !filtriAperti && chiudiDettaglio()"
+         class="absolute inset-0 z-40 w-full transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none
+                sm:static sm:inset-auto sm:z-auto sm:w-96 sm:translate-x-0 sm:transition-none shrink-0 border-l bg-white overflow-y-auto"
          aria-live="polite">
-    <div class="flex justify-center py-2 sm:hidden">
-      <span class="w-10 h-1.5 bg-gray-300 rounded-full"></span>
+    <div x-show="selezionato" class="sm:hidden sticky top-0 z-10 bg-white border-b px-2 py-1.5">
+      <button type="button" @click="chiudiDettaglio()" class="flex items-center gap-1 px-2 py-1.5 text-sm font-semibold text-primary">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6"/></svg>
+        Torna alla mappa
+      </button>
     </div>
 
     <template x-if="!selezionato">
@@ -181,9 +185,9 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
       </div>
     </template>
     <template x-if="selezionato">
-      <div class="p-5 pt-0 sm:pt-5">
+      <div class="p-5 pt-4 sm:pt-5">
         <template x-if="fotoCorrenti.length">
-          <div class="-mx-5 sm:-mt-5 mb-4">
+          <div class="-mx-5 -mt-4 sm:-mt-5 mb-4">
             <button type="button" @click="apriGalleria(0)" class="relative block w-full h-44 sm:h-52 bg-gray-100 overflow-hidden group"
                     :aria-label="'Apri le foto di ' + selezionato.nome + ' (' + fotoCorrenti.length + ')'">
               <img :src="fotoCorrenti[0].media" :alt="fotoCorrenti[0].alt || ''" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
@@ -212,7 +216,7 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
                   x-text="selezionato.categoria_nome"></span>
             <span x-show="selezionato.sovracomunale" class="inline-block text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800">Sovracomunale</span>
           </div>
-          <button type="button" @click="chiudiDettaglio()" aria-label="Chiudi dettagli" class="text-gray-400 hover:text-gray-700">×</button>
+          <button type="button" @click="chiudiDettaglio()" aria-label="Chiudi dettagli" class="hidden sm:inline-block text-gray-400 hover:text-gray-700">×</button>
         </div>
         <h2 class="mt-2 text-xl font-semibold" x-text="selezionato.nome"></h2>
         <p class="text-sm text-gray-600 mt-1"><span x-text="selezionato.indirizzo + ', ' + selezionato.comune_nome"></span></p>
@@ -223,7 +227,8 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
             <p class="mt-1 text-sm whitespace-pre-line" x-text="selezionato?.orario_testo"></p>
           </div>
         </template>
-        <template x-if="selezionato && !selezionato.orario_testo && selezionato.orari?.length">
+        <!-- Solo se almeno un giorno è aperto: un punto salvato senza orari ha tutti i giorni "chiuso", che non va mostrato come chiusura. -->
+        <template x-if="selezionato && !selezionato.orario_testo && selezionato.orari?.some((o) => !o.chiuso)">
           <div class="mt-4">
             <h3 class="text-xs font-semibold uppercase text-gray-500">Orari di apertura</h3>
             <dl class="mt-1 text-sm">
@@ -274,6 +279,71 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
       </div>
     </template>
   </aside>
+  <!-- Filtri: su mobile entrano da sinistra coprendo solo la mappa; su desktop pannello a destra a tutta altezza. -->
+    <div x-cloak class="absolute inset-0 sm:fixed z-[1200] pointer-events-none" @keydown.escape.window="filtriAperti = false">
+    <aside x-show="filtriAperti" id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="-translate-x-full sm:translate-x-full"
+           x-transition:enter-end="translate-x-0"
+           x-transition:leave="transition ease-in duration-200"
+           x-transition:leave-start="translate-x-0"
+           x-transition:leave-end="-translate-x-full sm:translate-x-full"
+           class="pointer-events-auto absolute inset-y-0 left-0 sm:left-auto sm:right-0 w-full bg-white shadow-lg flex flex-col sm:w-96">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h2 id="titolo-filtri" class="text-lg font-semibold text-navy">Filtri</h2>
+          <button type="button" @click="filtriAperti = false" class="text-sm text-primary hover:underline">Chiudi</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+          <fieldset>
+            <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Comune</legend>
+            <div class="space-y-2">
+              <template x-for="c in comuni" :key="c.id">
+                <label class="flex items-center gap-3 text-sm cursor-pointer">
+                  <input type="checkbox" :checked="filtroComuni.includes(c.id)" @change="toggleFiltro('filtroComuni', c.id)"
+                         class="w-4 h-4 rounded border-gray-400 text-primary">
+                  <span x-text="c.nome"></span>
+                </label>
+              </template>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Area tematica</legend>
+            <div class="space-y-2">
+              <template x-for="cat in categorie" :key="cat.id">
+                <label class="flex items-center gap-3 text-sm cursor-pointer">
+                  <input type="checkbox" :checked="filtroCategorie.includes(cat.id)" @change="toggleFiltro('filtroCategorie', cat.id)"
+                         class="w-4 h-4 rounded border-gray-400 text-primary">
+                  <span class="inline-block w-3 h-3 rounded-full shrink-0" :style="`background:${cat.colore_hex}`"></span>
+                  <span x-text="cat.nome"></span>
+                </label>
+              </template>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Opzioni della mappa</legend>
+            <div class="space-y-3">
+              <label x-show="semplificazioneDisponibile" class="flex items-start gap-3 text-sm cursor-pointer">
+                <input type="checkbox" :checked="mappaSemplificata" @change="impostaMappaSemplificata($event.target.checked)" class="mt-0.5 w-4 h-4 rounded border-gray-400 text-primary">
+                <span>Mappa semplificata
+                  <span class="block text-xs text-gray-600">Nasconde negozi, locali e altri punti di interesse dello sfondo: restano solo i servizi comunali.</span>
+                </span>
+              </label>
+              <label x-show="confiniDisponibili" class="flex items-center gap-3 text-sm cursor-pointer">
+                <input type="checkbox" :checked="mostraConfini" @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
+                Mostra confini comunali
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="px-5 py-4 border-t">
+          <button type="button" @click="azzeraFiltri()" class="w-full border border-gray-400 rounded py-2 text-sm font-medium hover:bg-gray-100">Azzera filtri</button>
+        </div>
+      </aside>
+    </div>
 </main>
 
 <footer class="border-t bg-white text-xs text-gray-600">
@@ -323,70 +393,6 @@ $configMappa = configMappa() + ['confiniUrl' => asset('/assets/geo/confini.geojs
   <p x-show="fotoAttuale?.alt" x-text="fotoAttuale?.alt" class="text-center text-white/90 text-sm px-4 pb-5"></p>
 </div>
 
-<div x-cloak class="fixed inset-0 z-[1200] pointer-events-none" @keydown.escape.window="filtriAperti = false">
-  <aside x-show="filtriAperti" id="pannello-filtri" role="dialog" aria-modal="true" aria-labelledby="titolo-filtri"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="translate-y-full sm:translate-y-0 sm:translate-x-full"
-         x-transition:enter-end="translate-y-0 sm:translate-x-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="translate-y-0 sm:translate-x-0"
-         x-transition:leave-end="translate-y-full sm:translate-y-0 sm:translate-x-full"
-         class="pointer-events-auto absolute inset-y-0 right-0 w-full bg-white shadow-lg flex flex-col sm:w-96">
-      <div class="flex items-center justify-between px-5 py-4 border-b">
-        <h2 id="titolo-filtri" class="text-lg font-semibold text-navy">Filtri</h2>
-        <button type="button" @click="filtriAperti = false" class="text-sm text-primary hover:underline">Chiudi</button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6">
-        <fieldset>
-          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Comune</legend>
-          <div class="space-y-2">
-            <template x-for="c in comuni" :key="c.id">
-              <label class="flex items-center gap-3 text-sm cursor-pointer">
-                <input type="checkbox" :checked="filtroComuni.includes(c.id)" @change="toggleFiltro('filtroComuni', c.id)"
-                       class="w-4 h-4 rounded border-gray-400 text-primary">
-                <span x-text="c.nome"></span>
-              </label>
-            </template>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Area tematica</legend>
-          <div class="space-y-2">
-            <template x-for="cat in categorie" :key="cat.id">
-              <label class="flex items-center gap-3 text-sm cursor-pointer">
-                <input type="checkbox" :checked="filtroCategorie.includes(cat.id)" @change="toggleFiltro('filtroCategorie', cat.id)"
-                       class="w-4 h-4 rounded border-gray-400 text-primary">
-                <span class="inline-block w-3 h-3 rounded-full shrink-0" :style="`background:${cat.colore_hex}`"></span>
-                <span x-text="cat.nome"></span>
-              </label>
-            </template>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend class="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Opzioni della mappa</legend>
-          <div class="space-y-3">
-            <label x-show="semplificazioneDisponibile" class="flex items-start gap-3 text-sm cursor-pointer">
-              <input type="checkbox" :checked="mappaSemplificata" @change="impostaMappaSemplificata($event.target.checked)" class="mt-0.5 w-4 h-4 rounded border-gray-400 text-primary">
-              <span>Mappa semplificata
-                <span class="block text-xs text-gray-600">Nasconde negozi, locali e altri punti di interesse dello sfondo: restano solo i servizi comunali.</span>
-              </span>
-            </label>
-            <label x-show="confiniDisponibili" class="flex items-center gap-3 text-sm cursor-pointer">
-              <input type="checkbox" :checked="mostraConfini" @change="toggleConfini($event.target.checked)" class="w-4 h-4 rounded border-gray-400 text-primary">
-              Mostra confini comunali
-            </label>
-          </div>
-        </fieldset>
-      </div>
-
-      <div class="px-5 py-4 border-t">
-        <button type="button" @click="azzeraFiltri()" class="w-full border border-gray-400 rounded py-2 text-sm font-medium hover:bg-gray-100">Azzera filtri</button>
-      </div>
-    </aside>
-  </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>

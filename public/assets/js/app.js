@@ -158,6 +158,7 @@ function mappaServizi() {
         suggerimentiAperti: false,
         indiceEvidenziato: -1,
         galleria: { aperta: false, indice: 0 },
+        pannelloAperto: false,
         inizioTocco: null,
         elementoPrimaDellaGalleria: null,
 
@@ -414,12 +415,20 @@ function mappaServizi() {
             this.filtriAperti = false;
             this.galleria.aperta = false;
             this.selezionato = punto;
+            this.pannelloAperto = true;
             if (lf.mappa) lf.mappa.panTo([punto.lat, punto.lng]);
         },
 
         chiudiDettaglio() {
             this.galleria.aperta = false;
-            this.selezionato = null;
+            this.pannelloAperto = false;
+            // Su mobile il pannello esce scorrendo: il contenuto si svuota a animazione finita,
+            // altrimenti durante l'uscita comparirebbe per un attimo l'elenco dei servizi.
+            if (window.matchMedia('(max-width: 639px)').matches) {
+                setTimeout(() => { if (!this.pannelloAperto) this.selezionato = null; }, 300);
+            } else {
+                this.selezionato = null;
+            }
         },
 
         get fotoCorrenti() {
