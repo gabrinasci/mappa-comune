@@ -27,10 +27,20 @@ const MAX_GEOCODIFICHE_PER_IMPORT = 30;
  */
 function anteprimaImportCsv(string $percorsoFile, array $utente): array
 {
-    $handle = fopen($percorsoFile, 'r');
-    if ($handle === false) {
+    $contenuto = @file_get_contents($percorsoFile);
+    if ($contenuto === false) {
         return ['errore_generale' => 'Impossibile leggere il file caricato.', 'righe' => []];
     }
+    // CSV salvati da Excel: "CSV UTF-8" inizia con un BOM invisibile (che renderebbe irriconoscibile
+    // la prima colonna), "CSV" semplice è in Windows-1252 (lettere accentate da convertire).
+    $contenuto = preg_replace('/^\xEF\xBB\xBF/', '', $contenuto);
+    if (!mb_check_encoding($contenuto, 'UTF-8')) {
+        $contenuto = mb_convert_encoding($contenuto, 'UTF-8', 'Windows-1252');
+    }
+    $contenuto = str_replace(["\r\n", "\r"], "\n", $contenuto);
+    $handle = fopen('php://temp', 'r+');
+    fwrite($handle, $contenuto);
+    rewind($handle);
 
     $intestazione = fgetcsv($handle, 0, ';');
     $separatore = ';';
